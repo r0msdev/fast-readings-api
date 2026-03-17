@@ -2,6 +2,3 @@ fastapi[standard]
 pydantic
 pydantic-settings
 pymongo
-pika
-azure-servicebus
-azure-identity

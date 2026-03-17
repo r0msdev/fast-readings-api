@@ -74,7 +74,7 @@ class DailySensorStatsTests(unittest.TestCase):
     def test_filtered_returns_404_for_unknown_sensor(self):
         self._insert_stats()
         response = self.client.get(
-            f'/weather/unknown-sensor/stats/', params={'sensorDate': STAT_DATE}
+            '/weather/unknown-sensor/stats/', params={'sensorDate': STAT_DATE}
         )
         self.assertEqual(response.status_code, 404)
 

@@ -16,7 +16,6 @@ from pathlib import Path
 import httpx
 
 SAMPLE_FILE = Path(__file__).parent / 'sample' / 'readings.json'
-# DEFAULT_BASE_URL = 'https://readings-api.ashymoss-b558c711.westeurope.azurecontainerapps.io'
 DEFAULT_BASE_URL = 'http://localhost:8000'
 ENDPOINT = '/weather/{sensor_name}/'
 
