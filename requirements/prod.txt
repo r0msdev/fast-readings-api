@@ -1,1 +1,3 @@
 -r base.txt
+azure-servicebus
+azure-identity
