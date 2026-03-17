@@ -1,12 +1,12 @@
 """API router for the weather readings and sensor stats endpoints."""
 import logging
-from datetime import date, datetime
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.read_models import DailySensorStatsDTO, WeatherReadingDTO
+from app.api.write_models import CreateReadingRequest
 from app.commands.create_reading import CreateReadingCommand
 from app.commands.delete_reading import DeleteReadingCommand
 from app.core.bus import command_bus, query_bus
@@ -18,15 +18,6 @@ from app.queries.stats import GetDailyStatsQuery, GetStatsListQuery
 logger = logging.getLogger('weather')
 
 router = APIRouter(prefix='/weather', tags=['weather'])
-
-
-class CreateReadingRequest(BaseModel):
-    """Request body schema for creating a new reading under a sensor."""
-    model_config = ConfigDict(populate_by_name=True)
-
-    sensor_name: str = Field(alias='sensorName')
-    sensor_date: datetime = Field(alias='sensorDate')
-    data_info: dict[str, float] = Field(alias='dataInfo')
 
 
 @router.get('/')
