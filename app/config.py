@@ -20,7 +20,11 @@ class Settings(BaseSettings):
     azure_servicebus_namespace: str = ""
     azure_servicebus_connection_string: str = ""
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
 
 settings = Settings()

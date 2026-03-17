@@ -40,11 +40,11 @@ typecheck: ## Run Pyright type checker (includes reportUnknownArgumentType)
 
 .PHONY: test
 test: ## Run all tests
-	.venv/bin/pytest app/tests --verbosity=2
+	.venv/bin/pytest tests --verbosity=2
 
 .PHONY: test-fast
 test-fast: ## Run all tests (minimal output)
-	.venv/bin/pytest app/tests -q
+	.venv/bin/pytest tests -q
 
 # ── Dev server ────────────────────────────────────────────────────────────────
 

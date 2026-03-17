@@ -3,7 +3,7 @@ import logging
 from datetime import date, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.read_models import DailySensorStatsDTO, WeatherReadingDTO
@@ -11,7 +11,7 @@ from app.commands.create_reading import CreateReadingCommand
 from app.commands.delete_reading import DeleteReadingCommand
 from app.core.bus import command_bus, query_bus
 from app.core.exceptions import DuplicateResourceError
-from app.core.pagination import PaginatedResponse, PaginationParams
+from app.core.pagination import PaginatedResponse, PaginationParams, paginate
 from app.queries.readings import GetReadingByIdQuery, ListReadingsQuery
 from app.queries.stats import GetDailyStatsQuery, GetStatsListQuery
 
@@ -31,18 +31,19 @@ class CreateReadingRequest(BaseModel):
 
 @router.get('/')
 def list_all_readings(
+    request: Request,
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
     sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
 ) -> PaginatedResponse[WeatherReadingDTO]:
     """GET /weather/ — return all readings across all sensors, with optional date filtering.
     """
     results = query_bus.dispatch(ListReadingsQuery(sensor_name=None, sensor_date=sensor_date))
-    page_results = results[pagination.skip: pagination.skip + pagination.page_size]
-    return PaginatedResponse(count=len(results), next=None, previous=None, results=page_results)
+    return paginate(request, results, pagination)
 
 
 @router.get('/{sensor_name}/')
 def list_readings_by_sensor(
+    request: Request,
     sensor_name: str,
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
     sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
@@ -52,8 +53,7 @@ def list_readings_by_sensor(
     results = query_bus.dispatch(
         ListReadingsQuery(sensor_name=sensor_name, sensor_date=sensor_date)
     )
-    page_results = results[pagination.skip: pagination.skip + pagination.page_size]
-    return PaginatedResponse(count=len(results), next=None, previous=None, results=page_results)
+    return paginate(request, results, pagination)
 
 
 @router.post('/{sensor_name}/', status_code=status.HTTP_201_CREATED)
