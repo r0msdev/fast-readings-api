@@ -37,7 +37,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError) -
     )
 
 
-async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # pylint: disable=unused-argument
+async def unhandled_exception_handler(request: Request, _exc: Exception) -> JSONResponse:
     """Catch-all handler that logs the traceback and returns HTTP 500."""
     logger.exception("Unhandled error on %s", request.url.path)
     return JSONResponse(

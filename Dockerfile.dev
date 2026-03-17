@@ -13,6 +13,12 @@ RUN pip install --no-cache-dir --upgrade pip --root-user-action=ignore && \
 # Source is mounted as a volume at runtime (see docker-compose.yml)
 COPY app/ app/
 
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+USER appuser
+
 EXPOSE 8000
 
 CMD ["fastapi", "dev", "app/main.py", "--host", "0.0.0.0", "--port", "8000"]

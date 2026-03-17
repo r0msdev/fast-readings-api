@@ -29,10 +29,10 @@ class CreateReadingRequest(BaseModel):
     data_info: dict[str, float] = Field(alias='dataInfo')
 
 
-@router.get('/', response_model=PaginatedResponse[WeatherReadingDTO])
+@router.get('/')
 def list_all_readings(
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
-    sensor_date: date | None = Query(default=None, alias='sensorDate'),
+    sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
 ) -> PaginatedResponse[WeatherReadingDTO]:
     """GET /weather/ — return all readings across all sensors, with optional date filtering.
     """
@@ -41,11 +41,11 @@ def list_all_readings(
     return PaginatedResponse(count=len(results), next=None, previous=None, results=page_results)
 
 
-@router.get('/{sensor_name}/', response_model=PaginatedResponse[WeatherReadingDTO])
+@router.get('/{sensor_name}/')
 def list_readings_by_sensor(
     sensor_name: str,
     pagination: Annotated[PaginationParams, Depends(PaginationParams)],
-    sensor_date: date | None = Query(default=None, alias='sensorDate'),
+    sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
 ) -> PaginatedResponse[WeatherReadingDTO]:
     """GET /weather/{sensor_name}/ — return readings for one sensor, with optional date filtering.
     """
@@ -56,9 +56,7 @@ def list_readings_by_sensor(
     return PaginatedResponse(count=len(results), next=None, previous=None, results=page_results)
 
 
-@router.post('/{sensor_name}/',
-             response_model=WeatherReadingDTO,
-             status_code=status.HTTP_201_CREATED)
+@router.post('/{sensor_name}/', status_code=status.HTTP_201_CREATED)
 def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadingDTO:
     """POST /weather/{sensor_name}/ — create a new reading for the given sensor,
     rejecting duplicates.
@@ -79,10 +77,10 @@ def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadi
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
-@router.get('/{sensor_name}/stats/', response_model=PaginatedResponse[DailySensorStatsDTO])
+@router.get('/{sensor_name}/stats/')
 def get_stats(
     sensor_name: str,
-    sensor_date: date | None = Query(default=None, alias='sensorDate'),
+    sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
 ) -> PaginatedResponse[DailySensorStatsDTO]:
     """GET /weather/{sensor_name}/stats/ — return pre-aggregated stats,
     optionally filtered to a single date.
@@ -100,7 +98,7 @@ def get_stats(
     return PaginatedResponse(count=len(results), next=None, previous=None, results=results)
 
 
-@router.get('/{sensor_name}/{reading_id}/', response_model=WeatherReadingDTO)
+@router.get('/{sensor_name}/{reading_id}/')
 def get_reading(sensor_name: str, reading_id: str) -> WeatherReadingDTO:
     """GET /weather/{sensor_name}/{reading_id}/ — return a single reading
     by sensor name and ObjectId.

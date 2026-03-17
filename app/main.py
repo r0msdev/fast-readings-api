@@ -61,8 +61,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
 
     # Import here to trigger @register_indexes decorators in repository modules
-    import app.domain.repositories.readings  # noqa: F401  pylint: disable=import-outside-toplevel,redefined-outer-name,unused-import
-    import app.domain.repositories.stats     # noqa: F401  pylint: disable=import-outside-toplevel,redefined-outer-name,unused-import
+    import app.domain.repositories.readings  # pylint: disable=import-outside-toplevel,redefined-outer-name,unused-import
+    import app.domain.repositories.stats     # pylint: disable=import-outside-toplevel,redefined-outer-name,unused-import
 
     _register_handlers()
 

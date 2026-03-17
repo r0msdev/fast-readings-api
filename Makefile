@@ -75,4 +75,4 @@ seed: ## Post sample readings to the dev API (http://localhost:8000)
 # ── Combined ──────────────────────────────────────────────────────────────────
 
 .PHONY: ci
-ci: lint test ## Run all checks (lint + tests)
+ci: lint typecheck test ## Run all checks (lint + typecheck + tests)
