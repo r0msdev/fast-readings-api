@@ -26,8 +26,10 @@ def _create_indexes(db: pymongo.database.Database[Any]) -> None:
 def list_readings(
     sensor_name: str | None = None,
     sensor_date: date | None = None,
+    skip: int = 0,
+    limit: int | None = None,
 ) -> list[WeatherReading]:
-    """Return all readings sorted by sensorDate descending, optionally filtered."""
+    """Return readings sorted by sensorDate descending, optionally filtered and paginated."""
     db = _db.get_database()
     query = {}
     if sensor_name:
@@ -35,8 +37,25 @@ def list_readings(
     if sensor_date:
         start = datetime(sensor_date.year, sensor_date.month, sensor_date.day, tzinfo=timezone.utc)
         query['sensorDate'] = {'$gte': start, '$lt': start + timedelta(days=1)}
-    cursor = db[COLLECTION].find(query).sort('sensorDate', -1)
+    cursor = db[COLLECTION].find(query).sort('sensorDate', -1).skip(skip)
+    if limit is not None:
+        cursor = cursor.limit(limit)
     return [doc_to_reading(cast(ReadingDoc, doc)) for doc in cursor]
+
+
+def count_readings(
+    sensor_name: str | None = None,
+    sensor_date: date | None = None,
+) -> int:
+    """Return the total number of readings matching the given filters."""
+    db = _db.get_database()
+    query: dict[str, object] = {}
+    if sensor_name:
+        query['sensorName'] = sensor_name
+    if sensor_date:
+        start = datetime(sensor_date.year, sensor_date.month, sensor_date.day, tzinfo=timezone.utc)
+        query['sensorDate'] = {'$gte': start, '$lt': start + timedelta(days=1)}
+    return db[COLLECTION].count_documents(query)
 
 
 def reading_exists(sensor_name: str, sensor_date: datetime) -> bool:
@@ -67,15 +86,16 @@ def get_reading_by_id(sensor_name: str, reading_id: str) -> WeatherReading | Non
     return doc_to_reading(cast(ReadingDoc, doc)) if doc is not None else None
 
 
-def delete_reading(sensor_name: str, reading_id: str) -> bool:
+def delete_reading(sensor_name: str, reading_id: str) -> WeatherReading | None:
     """Delete a reading by sensorName and ObjectId hex string.
 
-    Returns True if a document was deleted, False if it did not exist.
+    Returns the deleted WeatherReading, or None if the document did not exist.
+    Uses find_one_and_delete for a single atomic round-trip.
     """
     db = _db.get_database()
     try:
         oid = ObjectId(reading_id)
     except InvalidId:
-        return False
-    result = db[COLLECTION].delete_one({'_id': oid, 'sensorName': sensor_name})
-    return result.deleted_count > 0
+        return None
+    doc = db[COLLECTION].find_one_and_delete({'_id': oid, 'sensorName': sensor_name})
+    return doc_to_reading(cast(ReadingDoc, doc)) if doc is not None else None

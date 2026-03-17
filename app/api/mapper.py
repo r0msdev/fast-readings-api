@@ -5,6 +5,7 @@ from app.domain.entities import DailySensorStats, WeatherReading
 
 def reading_to_dto(entity: WeatherReading) -> WeatherReadingDTO:
     """Convert a WeatherReading domain entity to a WeatherReadingDTO."""
+    assert entity.id is not None, 'WeatherReading must have an id before mapping to DTO'
     return WeatherReadingDTO(
         id=entity.id,
         sensor_name=entity.sensor_name,

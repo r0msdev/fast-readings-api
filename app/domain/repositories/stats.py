@@ -21,11 +21,23 @@ def _create_indexes(db: pymongo.database.Database[Any]) -> None:
     )
 
 
-def get_stats_list(sensor_name: str) -> list[DailySensorStats]:
-    """Return all pre-stored daily stats for a sensor, ordered by date descending."""
+def count_stats(sensor_name: str) -> int:
+    """Return the total number of daily stats entries for a sensor."""
     db = _db.get_database()
-    docs = db[COLLECTION].find({'sensorName': sensor_name}, sort=[('date', -1)])
-    return [doc_to_stats(cast(StatsDoc, doc)) for doc in docs]
+    return db[COLLECTION].count_documents({'sensorName': sensor_name})
+
+
+def get_stats_list(
+    sensor_name: str,
+    skip: int = 0,
+    limit: int | None = None,
+) -> list[DailySensorStats]:
+    """Return daily stats for a sensor ordered by date descending, with optional skip/limit."""
+    db = _db.get_database()
+    cursor = db[COLLECTION].find({'sensorName': sensor_name}, sort=[('date', -1)]).skip(skip)
+    if limit is not None:
+        cursor = cursor.limit(limit)
+    return [doc_to_stats(cast(StatsDoc, doc)) for doc in cursor]
 
 
 def get_daily_stats(sensor_name: str, sensor_date: date) -> DailySensorStats | None:

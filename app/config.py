@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Messaging
     messaging_backend: str = "rabbitmq"  # "rabbitmq" | "servicebus"
     rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
-    service_bus_queue_name: str = ""
+    messaging_queue_name: str = "stats-recalculate"
     azure_servicebus_namespace: str = ""
     azure_servicebus_connection_string: str = ""
 

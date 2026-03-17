@@ -1,10 +1,11 @@
 """Query objects and handlers for retrieving weather readings."""
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 from app.api import mapper
 from app.api.read_models import WeatherReadingDTO
+from app.core.pagination import Page
 from app.domain.repositories import readings as repo
 
 logger = logging.getLogger('weather')
@@ -15,19 +16,27 @@ class ListReadingsQuery:
     """Query to list readings, optionally filtered by sensor name and date."""
     sensor_name: str | None
     sensor_date: date | None
+    skip: int = field(default=0)
+    limit: int = field(default=20)
 
 
 class ListReadingsHandler:  # pylint: disable=too-few-public-methods
     """Handles ListReadingsQuery by fetching and mapping matching readings."""
 
-    def handle(self, query: ListReadingsQuery) -> list[WeatherReadingDTO]:
-        """Execute the query and return a list of WeatherReadingDTOs."""
+    def handle(self, query: ListReadingsQuery) -> Page[WeatherReadingDTO]:
+        """Execute the query and return a Page of WeatherReadingDTOs."""
         if query.sensor_name:
             logger.debug('Filtering readings by sensorName=%s', query.sensor_name)
         if query.sensor_date:
             logger.debug('Filtering readings by sensorDate=%s', query.sensor_date)
-        entities = repo.list_readings(sensor_name=query.sensor_name, sensor_date=query.sensor_date)
-        return [mapper.reading_to_dto(e) for e in entities]
+        total = repo.count_readings(sensor_name=query.sensor_name, sensor_date=query.sensor_date)
+        entities = repo.list_readings(
+            sensor_name=query.sensor_name,
+            sensor_date=query.sensor_date,
+            skip=query.skip,
+            limit=query.limit,
+        )
+        return Page(items=[mapper.reading_to_dto(e) for e in entities], total=total)
 
 
 @dataclass

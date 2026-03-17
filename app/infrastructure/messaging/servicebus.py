@@ -2,6 +2,7 @@
 # pylint: disable=import-error
 import contextlib
 import logging
+from collections.abc import Callable
 
 from azure.servicebus import (  # type: ignore[import-untyped]
     ServiceBusClient,
@@ -59,7 +60,7 @@ def get_receiver(queue_name: str):
 def ping() -> None:
     """Verify Service Bus reachability by opening and closing a connection."""
     with _get_client() as client:
-        client.get_queue_sender(settings.service_bus_queue_name)
+        client.get_queue_sender(settings.messaging_queue_name)
 
 
 def publish(queue_name: str, body: str, message_id: str | None = None) -> None:
@@ -67,3 +68,25 @@ def publish(queue_name: str, body: str, message_id: str | None = None) -> None:
     if _state.publisher is None:
         _state.publisher = ServiceBusPublisher(_get_client())  # type: ignore[arg-type]
     _state.publisher.publish(queue_name, body, message_id)
+
+
+def consume(
+    queue_name: str,
+    callback: Callable[[str], None],
+    heartbeat_fn: Callable[[], None] | None = None,  # pylint: disable=unused-argument
+) -> None:
+    """Block forever, calling callback(body_str) for each message received.
+
+    heartbeat_fn is accepted for interface compatibility but is not used —
+    the Service Bus SDK handles keep-alive internally.
+    """
+    logger.info('Service Bus consumer started on queue=%s', queue_name)
+    with get_receiver(queue_name) as receiver:
+        for msg in receiver:
+            body = str(msg)  # type: ignore[arg-type]
+            try:
+                callback(body)
+                receiver.complete_message(msg)  # type: ignore[arg-type]
+            except Exception:  # pylint: disable=broad-except
+                logger.exception('Service Bus message processing failed — dead-lettering: %s', body)
+                receiver.dead_letter_message(msg)  # type: ignore[arg-type]

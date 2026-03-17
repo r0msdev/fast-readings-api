@@ -48,6 +48,26 @@ services:
       retries: 3
       start_period: 20s
 
+  worker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    profiles: [dev]
+    command: ["python", "-m", "app.worker"]
+    volumes:
+      # Hot-reload: mount source so code changes reflect immediately
+      - ./app:/app/app
+    env_file:
+      - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
   # ── Production ──────────────────────────────────────────────────────────────
   web-prod:
     build:

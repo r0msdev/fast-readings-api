@@ -1,6 +1,7 @@
 """Messaging facade — routes publish() and ping() to the configured backend.
 Backend-specific logic lives in rabbitmq.py and servicebus.py.
 """
+from collections.abc import Callable
 from typing import Any
 
 from app.config import settings
@@ -32,3 +33,12 @@ def ping() -> None:
 def publish(queue_name: str, body: str, message_id: str | None = None) -> None:
     """Publish a message to the named queue using the configured backend."""
     _get_backend().publish(queue_name, body, message_id)
+
+
+def consume(
+    queue_name: str,
+    callback: Callable[[str], None],
+    heartbeat_fn: Callable[[], None] | None = None,
+) -> None:
+    """Block forever, calling callback(body_str) for each message received."""
+    _get_backend().consume(queue_name, callback, heartbeat_fn)

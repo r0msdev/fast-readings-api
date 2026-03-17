@@ -1,5 +1,6 @@
 """Pagination helpers for FastAPI query parameters and paginated response models."""
 import math
+from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from fastapi import Query, Request
@@ -28,19 +29,24 @@ class PaginatedResponse(BaseModel, Generic[T]):
     results: list[T]
 
 
-def paginate(
+@dataclass
+class Page(Generic[T]):
+    """Result of a repository list call: sliced items plus total document count."""
+    items: list[T]
+    total: int
+
+
+def build_paginated_response(
     request: Request,
-    all_results: list[T],
+    page: Page[T],
     pagination: PaginationParams,
 ) -> PaginatedResponse[T]:
-    """Slice results and build next/previous URLs from the current request URL."""
-    total = len(all_results)
-    page_results = all_results[pagination.skip: pagination.skip + pagination.page_size]
-    total_pages = math.ceil(total / pagination.page_size) if pagination.page_size else 1
+    """Build a PaginatedResponse from a pre-sliced Page returned by the query handler."""
+    total_pages = math.ceil(page.total / pagination.page_size) if pagination.page_size else 1
 
-    def page_url(page: int) -> str:
+    def page_url(p: int) -> str:
         params = dict(request.query_params)
-        params['page'] = str(page)
+        params['page'] = str(p)
         query = '&'.join(f'{k}={v}' for k, v in params.items())
         return str(request.url.replace(query=query))
 
@@ -48,8 +54,8 @@ def paginate(
     prev_url = page_url(pagination.page - 1) if pagination.page > 1 else None
 
     return PaginatedResponse(
-        count=total,
+        count=page.total,
         next=next_url,
         previous=prev_url,
-        results=page_results,
+        results=page.items,
     )

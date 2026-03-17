@@ -18,7 +18,7 @@ def publish_reading_created(sensor_name: str, sensor_date: datetime) -> None:
         'correlationId': get_correlation_id(),
     })
     message_id = f'{sensor_name}:{sensor_date.date().isoformat()}'
-    queue.publish(settings.service_bus_queue_name, body, message_id)
+    queue.publish(settings.messaging_queue_name, body, message_id)
     logger.debug('Published stats.recalculate sensor=%s date=%s', sensor_name, sensor_date.date())
 
 

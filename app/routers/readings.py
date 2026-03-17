@@ -11,7 +11,7 @@ from app.commands.create_reading import CreateReadingCommand
 from app.commands.delete_reading import DeleteReadingCommand
 from app.core.bus import command_bus, query_bus
 from app.core.exceptions import DuplicateResourceError
-from app.core.pagination import PaginatedResponse, PaginationParams, paginate
+from app.core.pagination import PaginatedResponse, PaginationParams, build_paginated_response
 from app.queries.readings import GetReadingByIdQuery, ListReadingsQuery
 from app.queries.stats import GetDailyStatsQuery, GetStatsListQuery
 
@@ -37,8 +37,13 @@ def list_all_readings(
 ) -> PaginatedResponse[WeatherReadingDTO]:
     """GET /weather/ — return all readings across all sensors, with optional date filtering.
     """
-    results = query_bus.dispatch(ListReadingsQuery(sensor_name=None, sensor_date=sensor_date))
-    return paginate(request, results, pagination)
+    page = query_bus.dispatch(ListReadingsQuery(
+        sensor_name=None,
+        sensor_date=sensor_date,
+        skip=pagination.skip,
+        limit=pagination.page_size,
+    ))
+    return build_paginated_response(request, page, pagination)
 
 
 @router.get('/{sensor_name}/')
@@ -50,10 +55,13 @@ def list_readings_by_sensor(
 ) -> PaginatedResponse[WeatherReadingDTO]:
     """GET /weather/{sensor_name}/ — return readings for one sensor, with optional date filtering.
     """
-    results = query_bus.dispatch(
-        ListReadingsQuery(sensor_name=sensor_name, sensor_date=sensor_date)
-    )
-    return paginate(request, results, pagination)
+    page = query_bus.dispatch(ListReadingsQuery(
+        sensor_name=sensor_name,
+        sensor_date=sensor_date,
+        skip=pagination.skip,
+        limit=pagination.page_size,
+    ))
+    return build_paginated_response(request, page, pagination)
 
 
 @router.post('/{sensor_name}/', status_code=status.HTTP_201_CREATED)
@@ -79,7 +87,9 @@ def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadi
 
 @router.get('/{sensor_name}/stats/')
 def get_stats(
+    request: Request,
     sensor_name: str,
+    pagination: Annotated[PaginationParams, Depends(PaginationParams)],
     sensor_date: Annotated[date | None, Query(alias='sensorDate')] = None,
 ) -> PaginatedResponse[DailySensorStatsDTO]:
     """GET /weather/{sensor_name}/stats/ — return pre-aggregated stats,
@@ -94,8 +104,12 @@ def get_stats(
         if result is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Stats not found.')
         return PaginatedResponse(count=1, next=None, previous=None, results=[result])
-    results = query_bus.dispatch(GetStatsListQuery(sensor_name=sensor_name))
-    return PaginatedResponse(count=len(results), next=None, previous=None, results=results)
+    page = query_bus.dispatch(GetStatsListQuery(
+        sensor_name=sensor_name,
+        skip=pagination.skip,
+        limit=pagination.page_size,
+    ))
+    return build_paginated_response(request, page, pagination)
 
 
 @router.get('/{sensor_name}/{reading_id}/')

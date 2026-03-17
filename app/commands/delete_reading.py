@@ -24,10 +24,9 @@ class DeleteReadingHandler:  # pylint: disable=too-few-public-methods
         Returns True if the reading was deleted, False if it did not exist.
         Publishes stats.recalculate when a reading is successfully deleted.
         """
-        reading = repo.get_reading_by_id(cmd.sensor_name, cmd.reading_id)
+        reading = repo.delete_reading(cmd.sensor_name, cmd.reading_id)
         if reading is None:
             return False
-        repo.delete_reading(cmd.sensor_name, cmd.reading_id)
         logger.info('Deleted WeatherReading id=%s sensor=%s', cmd.reading_id, cmd.sensor_name)
         publisher.try_publish_reading_created(reading.sensor_name, reading.sensor_date)
         return True

@@ -1,10 +1,11 @@
 """Query objects and handlers for retrieving pre-aggregated daily sensor stats."""
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 
 from app.api import mapper
 from app.api.read_models import DailySensorStatsDTO
+from app.core.pagination import Page
 from app.domain.repositories import stats as repo
 
 logger = logging.getLogger('weather')
@@ -14,16 +15,19 @@ logger = logging.getLogger('weather')
 class GetStatsListQuery:
     """Query to list all daily stats entries for a sensor."""
     sensor_name: str
+    skip: int = field(default=0)
+    limit: int = field(default=20)
 
 
 class GetStatsListHandler:  # pylint: disable=too-few-public-methods
-    """Handles GetStatsListQuery by fetching and mapping all stats for a sensor."""
+    """Handles GetStatsListQuery by fetching and mapping stats for a sensor."""
 
-    def handle(self, query: GetStatsListQuery) -> list[DailySensorStatsDTO]:
-        """Return all DailySensorStatsDTOs for the requested sensor."""
-        entities = repo.get_stats_list(query.sensor_name)
-        logger.debug('Listed DailySensorStats sensor=%s count=%d', query.sensor_name, len(entities))
-        return [mapper.stats_to_dto(e) for e in entities]
+    def handle(self, query: GetStatsListQuery) -> Page[DailySensorStatsDTO]:
+        """Return a Page of DailySensorStatsDTOs for the requested sensor."""
+        total = repo.count_stats(query.sensor_name)
+        entities = repo.get_stats_list(query.sensor_name, skip=query.skip, limit=query.limit)
+        logger.debug('Listed DailySensorStats sensor=%s count=%d', query.sensor_name, total)
+        return Page(items=[mapper.stats_to_dto(e) for e in entities], total=total)
 
 
 @dataclass
