@@ -1,0 +1,8 @@
+fastapi[standard]
+pydantic
+pydantic-settings
+
+# Dev
+httpx
+pytest
+pytest-asyncio
