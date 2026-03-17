@@ -1,0 +1,6 @@
+-r base.txt
+httpx
+pytest
+pytest-asyncio
+mongomock
+pylint
