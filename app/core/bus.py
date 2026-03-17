@@ -14,7 +14,8 @@ class MessageBus:
 
     def dispatch(self, message: Any) -> Any:
         """Find the registered handler for the message type and invoke it."""
-        handler = self._handlers.get(type(message))
+        msg_type: type = type(message)
+        handler = self._handlers.get(msg_type)
         if handler is None:
             raise ValueError(f'No handler registered for {type(message).__name__}')
         return handler(message)

@@ -32,6 +32,10 @@ outdated: ## List outdated packages
 lint: ## Run pylint over the project
 	.venv/bin/pylint app
 
+.PHONY: typecheck
+typecheck: ## Run Pyright type checker (includes reportUnknownArgumentType)
+	.venv/bin/pyright app
+
 # ── Tests ─────────────────────────────────────────────────────────────────────
 
 .PHONY: test

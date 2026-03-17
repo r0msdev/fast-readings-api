@@ -56,6 +56,8 @@ def _register_handlers() -> None:  # pylint: disable=too-many-locals
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Configure logging, register bus handlers, and ensure MongoDB indexes."""
     logging.basicConfig(level=settings.log_level.upper())
+    # Silence pika's verbose connection-lifecycle INFO logs
+    logging.getLogger('pika').setLevel(logging.WARNING)
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
 
     # Import here to trigger @register_indexes decorators in repository modules
@@ -81,8 +83,9 @@ app = FastAPI(
 app.add_middleware(CorrelationIdMiddleware)
 
 app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(  # type: ignore[arg-type]
-    DuplicateResourceError, conflict_exception_handler
+app.add_exception_handler(
+    DuplicateResourceError,
+    conflict_exception_handler,  # type: ignore[arg-type]
 )
 app.add_exception_handler(ValidationError, validation_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(Exception, unhandled_exception_handler)

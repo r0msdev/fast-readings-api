@@ -1,18 +1,20 @@
 """MongoDB repository for pre-aggregated daily sensor stats documents."""
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from typing import Any, cast
 
 from pymongo import ASCENDING, DESCENDING
 
+import pymongo.database
 import app.infrastructure.database.mongo as _db
 from app.domain.entities import DailySensorStats
-from app.domain.serialization import doc_to_stats
+from app.domain.serialization import doc_to_stats, StatsDoc
 from app.domain.repositories.collections import READINGS_COLLECTION, STATS_COLLECTION
 
 COLLECTION = STATS_COLLECTION
 
 
 @_db.register_indexes
-def _create_indexes(db) -> None:
+def _create_indexes(db: pymongo.database.Database[Any]) -> None:
     db[COLLECTION].create_index(
         [('sensorName', ASCENDING), ('date', DESCENDING)],
         name='sensorName_date',
@@ -23,26 +25,28 @@ def get_stats_list(sensor_name: str) -> list[DailySensorStats]:
     """Return all pre-stored daily stats for a sensor, ordered by date descending."""
     db = _db.get_database()
     docs = db[COLLECTION].find({'sensorName': sensor_name}, sort=[('date', -1)])
-    return [doc_to_stats(doc) for doc in docs]
+    return [doc_to_stats(cast(StatsDoc, doc)) for doc in docs]
 
 
-def get_daily_stats(sensor_name: str, date) -> DailySensorStats | None:
+def get_daily_stats(sensor_name: str, sensor_date: date) -> DailySensorStats | None:
     """Return pre-stored daily stats for a sensor on a given date, or None if absent."""
     db = _db.get_database()
-    stat_datetime = datetime(date.year, date.month, date.day, tzinfo=timezone.utc)
+    stat_datetime = datetime(
+        sensor_date.year, sensor_date.month, sensor_date.day, tzinfo=timezone.utc
+    )
     doc = db[COLLECTION].find_one({'sensorName': sensor_name, 'date': stat_datetime})
     if doc is None:
         return None
-    return doc_to_stats(doc)
+    return doc_to_stats(cast(StatsDoc, doc))
 
 
-def upsert_daily_stats(sensor_name: str, date) -> None:
+def upsert_daily_stats(sensor_name: str, sensor_date: date) -> None:
     """Re-aggregate readings for sensor+day and upsert the result into weather-stats."""
     db = _db.get_database()
-    start = datetime(date.year, date.month, date.day, tzinfo=timezone.utc)
+    start = datetime(sensor_date.year, sensor_date.month, sensor_date.day, tzinfo=timezone.utc)
     end = start + timedelta(days=1)
 
-    pipeline = [
+    pipeline: list[dict[str, Any]] = [
         {'$match': {'sensorName': sensor_name, 'sensorDate': {'$gte': start, '$lt': end}}},
         {'$group': {
             '_id': None,
@@ -70,7 +74,7 @@ def upsert_daily_stats(sensor_name: str, date) -> None:
                 'max': max(values),
             }
 
-    pk = f'{sensor_name}#{date.year}'
+    pk = f'{sensor_name}#{sensor_date.year}'
     db[COLLECTION].replace_one(
         {'pk': pk, 'sensorName': sensor_name, 'date': start},
         {'pk': pk, 'sensorName': sensor_name, 'date': start,

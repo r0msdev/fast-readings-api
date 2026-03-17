@@ -1,11 +1,13 @@
 """Messaging facade — routes publish() and ping() to the configured backend.
 Backend-specific logic lives in rabbitmq.py and servicebus.py.
 """
+from typing import Any
+
 from app.config import settings
 
 
 class _State:  # pylint: disable=too-few-public-methods
-    backend = None
+    backend: Any = None
 
 
 _state = _State()

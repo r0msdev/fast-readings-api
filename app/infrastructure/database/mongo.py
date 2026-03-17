@@ -2,7 +2,7 @@
 import logging
 import warnings
 from functools import lru_cache
-from typing import Callable
+from typing import Any, Callable
 
 import pymongo
 
@@ -10,10 +10,12 @@ from app.config import settings
 
 logger = logging.getLogger('core')
 
-_index_registrations: list[Callable[[pymongo.database.Database], None]] = []
+_index_registrations: list[Callable[[pymongo.database.Database[Any]], None]] = []
 
 
-def register_indexes(fn: Callable[[pymongo.database.Database], None]) -> Callable:
+def register_indexes(
+    fn: Callable[[pymongo.database.Database[Any]], None],
+) -> Callable[[pymongo.database.Database[Any]], None]:
     """Decorator that registers a function to create indexes for one collection."""
     _index_registrations.append(fn)
     return fn
@@ -36,7 +38,7 @@ def _get_client() -> pymongo.MongoClient:
         return pymongo.MongoClient(settings.mongodb_uri)
 
 
-def get_database() -> pymongo.database.Database:
+def get_database() -> pymongo.database.Database[Any]:
     """Return the configured MongoDB database."""
     return _get_client()[settings.mongodb_db_name]
 

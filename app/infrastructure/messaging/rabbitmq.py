@@ -1,5 +1,6 @@
 """RabbitMQ messaging backend using the pika library."""
 import logging
+from typing import Any
 
 import pika
 
@@ -9,13 +10,13 @@ logger = logging.getLogger('weather')
 
 
 class _State:  # pylint: disable=too-few-public-methods
-    channel: 'pika.adapters.blocking_connection.BlockingChannel | None' = None
+    channel: Any = None
 
 
 _state = _State()
 
 
-def get_channel() -> pika.adapters.blocking_connection.BlockingChannel:
+def get_channel() -> Any:
     """Open a new connection and return a fresh channel."""
     params = pika.URLParameters(settings.rabbitmq_url)
     connection = pika.BlockingConnection(params)

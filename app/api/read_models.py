@@ -10,7 +10,7 @@ class WeatherReadingDTO(BaseModel):
     """Read model for a single sensor reading returned by the API."""
     model_config = ConfigDict(populate_by_name=True)
 
-    id: str
+    id: str | None
     sensor_name: str = Field(serialization_alias='sensorName')
     sensor_date: datetime = Field(serialization_alias='sensorDate')
     data_info: dict[str, float] = Field(serialization_alias='dataInfo')
@@ -23,4 +23,4 @@ class DailySensorStatsDTO(BaseModel):
     sensor_name: str = Field(serialization_alias='sensorName')
     date: date
     reading_count: int = Field(serialization_alias='readingCount')
-    stats: dict
+    stats: dict[str, float]

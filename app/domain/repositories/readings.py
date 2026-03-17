@@ -1,10 +1,12 @@
 """MongoDB repository for weather reading documents."""
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
+from typing import Any, cast
 
 from bson import ObjectId
 from bson.errors import InvalidId
 from pymongo import ASCENDING, DESCENDING
 
+import pymongo.database
 import app.infrastructure.database.mongo as _db
 from app.domain.serialization import reading_to_doc, doc_to_reading, ReadingDoc
 from app.domain.entities import WeatherReading
@@ -14,14 +16,17 @@ COLLECTION = READINGS_COLLECTION
 
 
 @_db.register_indexes
-def _create_indexes(db) -> None:
+def _create_indexes(db: pymongo.database.Database[Any]) -> None:
     db[COLLECTION].create_index(
         [('sensorName', ASCENDING), ('sensorDate', DESCENDING)],
         name='sensorName_sensorDate',
     )
 
 
-def list_readings(sensor_name=None, sensor_date=None) -> list[WeatherReading]:
+def list_readings(
+    sensor_name: str | None = None,
+    sensor_date: date | None = None,
+) -> list[WeatherReading]:
     """Return all readings sorted by sensorDate descending, optionally filtered."""
     db = _db.get_database()
     query = {}
@@ -31,10 +36,10 @@ def list_readings(sensor_name=None, sensor_date=None) -> list[WeatherReading]:
         start = datetime(sensor_date.year, sensor_date.month, sensor_date.day, tzinfo=timezone.utc)
         query['sensorDate'] = {'$gte': start, '$lt': start + timedelta(days=1)}
     cursor = db[COLLECTION].find(query).sort('sensorDate', -1)
-    return [doc_to_reading(doc) for doc in cursor]
+    return [doc_to_reading(cast(ReadingDoc, doc)) for doc in cursor]
 
 
-def reading_exists(sensor_name: str, sensor_date) -> bool:
+def reading_exists(sensor_name: str, sensor_date: datetime) -> bool:
     """Return True if a reading with the same sensorName and sensorDate already exists."""
     db = _db.get_database()
     return db[COLLECTION].count_documents(
@@ -59,7 +64,7 @@ def get_reading_by_id(sensor_name: str, reading_id: str) -> WeatherReading | Non
     except InvalidId:
         return None
     doc = db[COLLECTION].find_one({'_id': oid, 'sensorName': sensor_name})
-    return doc_to_reading(doc) if doc is not None else None
+    return doc_to_reading(cast(ReadingDoc, doc)) if doc is not None else None
 
 
 def delete_reading(sensor_name: str, reading_id: str) -> bool:

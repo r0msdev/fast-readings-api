@@ -3,7 +3,11 @@
 import contextlib
 import logging
 
-from azure.servicebus import ServiceBusClient, ServiceBusSender, ServiceBusMessage
+from azure.servicebus import (  # type: ignore[import-untyped]
+    ServiceBusClient,
+    ServiceBusSender,
+    ServiceBusMessage,
+)
 
 from app.config import settings
 
@@ -36,10 +40,10 @@ _state = _State()
 def _get_client() -> ServiceBusClient:
     """Build and return a ServiceBusClient using namespace credential or connection string."""
     if settings.azure_servicebus_namespace:
-        from azure.identity import DefaultAzureCredential  # pylint: disable=import-outside-toplevel
+        from azure.identity import DefaultAzureCredential  # type: ignore[import-untyped]  # pylint: disable=import-outside-toplevel
         return ServiceBusClient(
             fully_qualified_namespace=settings.azure_servicebus_namespace,
-            credential=DefaultAzureCredential(),
+            credential=DefaultAzureCredential(),  # type: ignore[arg-type]
         )
     return ServiceBusClient.from_connection_string(settings.azure_servicebus_connection_string)
 
@@ -61,5 +65,5 @@ def ping() -> None:
 def publish(queue_name: str, body: str, message_id: str | None = None) -> None:
     """Publish a message to the named Service Bus queue."""
     if _state.publisher is None:
-        _state.publisher = ServiceBusPublisher(_get_client())
+        _state.publisher = ServiceBusPublisher(_get_client())  # type: ignore[arg-type]
     _state.publisher.publish(queue_name, body, message_id)
