@@ -32,7 +32,7 @@ async def validation_exception_handler(request: Request, exc: ValidationError) -
     """Return HTTP 422 with field-level validation error details."""
     logger.warning("Validation error on %s: %s", request.url.path, exc.errors())
     return JSONResponse(
-        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
         content={"error": "Validation error", "details": exc.errors()},
     )
 

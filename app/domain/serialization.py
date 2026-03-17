@@ -26,7 +26,7 @@ class StatsDoc(TypedDict):
     sensorName: str
     date: datetime | str
     readingCount: int
-    stats: dict[str, float]
+    stats: dict[str, dict[str, float]]
 
 
 def doc_to_reading(doc: ReadingDoc) -> WeatherReading:

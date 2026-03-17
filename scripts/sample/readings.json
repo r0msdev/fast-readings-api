@@ -1,0 +1,290 @@
+[
+    {
+        "id": "dcb685c9-51a4-4fdf-e355-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T23:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 9.7,
+            "TemperatureMax": 10.3,
+            "TemperatureMin": 9.6,
+            "Humidity": 92,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "dcae0bc0-ab3e-4526-e351-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T22:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 10.3,
+            "TemperatureMax": 10.6,
+            "TemperatureMin": 9.8,
+            "Humidity": 92,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "c58031d8-6a58-4bff-e349-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T21:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 10.5,
+            "TemperatureMax": 11.8,
+            "TemperatureMin": 10.3,
+            "Humidity": 89,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "aa22c6d9-385e-4003-e343-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T20:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 12.1,
+            "TemperatureMax": 12.5,
+            "TemperatureMin": 12,
+            "Humidity": 85,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "5c1fa478-e759-474f-e33f-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T19:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 12.3,
+            "TemperatureMax": 13.8,
+            "TemperatureMin": 12.3,
+            "Humidity": 83,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "168c4363-7ea1-434b-e33b-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T18:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 13.9,
+            "TemperatureMax": 14.9,
+            "TemperatureMin": 13.8,
+            "Humidity": 73,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "beacb38a-55ed-402e-e333-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T17:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 14.9,
+            "TemperatureMax": 16.2,
+            "TemperatureMin": 14.9,
+            "Humidity": 64,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "68c1cac8-5c0d-44a0-e32f-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T16:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 16.2,
+            "TemperatureMax": 16.7,
+            "TemperatureMin": 16.2,
+            "Humidity": 57,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "eb18d48b-ced5-45e1-e329-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T15:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 16.2,
+            "TemperatureMax": 16.4,
+            "TemperatureMin": 16,
+            "Humidity": 57,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "ab184df9-7c2c-4115-e325-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T14:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 16.1,
+            "TemperatureMax": 16.4,
+            "TemperatureMin": 16,
+            "Humidity": 60,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "9b5e0008-25e9-459c-e31d-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T13:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 16.4,
+            "TemperatureMax": 16.5,
+            "TemperatureMin": 15.4,
+            "Humidity": 59,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "69e600bf-e66a-40b3-e319-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T12:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 15.3,
+            "TemperatureMax": 15.4,
+            "TemperatureMin": 14.4,
+            "Humidity": 64,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "2663b86e-cd7e-42f0-e315-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T11:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 14.3,
+            "TemperatureMax": 14.5,
+            "TemperatureMin": 14.3,
+            "Humidity": 70,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "bdd32c1c-24a6-4a4b-e311-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T10:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 14.5,
+            "TemperatureMax": 14.5,
+            "TemperatureMin": 13.4,
+            "Humidity": 69,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "f85fedbe-f30a-4245-e309-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T09:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 12.8,
+            "TemperatureMax": 13.2,
+            "TemperatureMin": 10.3,
+            "Humidity": 80,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "d7342748-9c5f-4e6a-e305-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T08:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 10.1,
+            "TemperatureMax": 10.3,
+            "TemperatureMin": 9.1,
+            "Humidity": 92,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "e179434e-2856-4c44-e301-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T07:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 9.2,
+            "TemperatureMax": 9.2,
+            "TemperatureMin": 8.6,
+            "Humidity": 92,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "d6a084b5-e467-4635-e2fd-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T06:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 8.6,
+            "TemperatureMax": 9.3,
+            "TemperatureMin": 8.6,
+            "Humidity": 92,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "efb31cb8-f8e8-4db6-e2f5-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T05:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 9,
+            "TemperatureMax": 9.6,
+            "TemperatureMin": 9,
+            "Humidity": 91,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "deb8a390-791c-456f-e2ed-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T04:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 9.6,
+            "TemperatureMax": 10.8,
+            "TemperatureMin": 9.6,
+            "Humidity": 91,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "e83f4e0a-3ca2-49c9-e2e9-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T03:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 11,
+            "TemperatureMax": 11.3,
+            "TemperatureMin": 10.8,
+            "Humidity": 88,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "f566a9cf-cf8a-4aec-e2e5-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T02:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 11.4,
+            "TemperatureMax": 11.8,
+            "TemperatureMin": 11.3,
+            "Humidity": 86,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "361b14eb-4847-4e00-e2db-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T01:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 11.8,
+            "TemperatureMax": 12.6,
+            "TemperatureMin": 11.8,
+            "Humidity": 85,
+            "Rainfall": 0
+        }
+    },
+    {
+        "id": "130d383c-506b-48cf-e2da-08de745a3cf0",
+        "sensorName": "aemet-valencia-aeropuerto",
+        "sensorDate": "2026-03-01T00:00:00+00:00",
+        "dataInfo": {
+            "Temperature": 12.6,
+            "TemperatureMax": 13.2,
+            "TemperatureMin": 12.6,
+            "Humidity": 82,
+            "Rainfall": 0
+        }
+    }
+]

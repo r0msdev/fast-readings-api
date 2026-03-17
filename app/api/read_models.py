@@ -23,4 +23,4 @@ class DailySensorStatsDTO(BaseModel):
     sensor_name: str = Field(serialization_alias='sensorName')
     date: date
     reading_count: int = Field(serialization_alias='readingCount')
-    stats: dict[str, float]
+    stats: dict[str, dict[str, float]]

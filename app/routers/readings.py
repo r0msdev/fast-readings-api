@@ -63,7 +63,7 @@ def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadi
     """
     if body.sensor_name != sensor_name:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail={'sensorName': 'Must match the sensor name in the URL.'},
         )
     cmd = CreateReadingCommand(

@@ -25,7 +25,7 @@ class DailySensorStats:
     sensor_name: str
     date: date
     reading_count: int
-    stats: dict[str, float]
+    stats: dict[str, dict[str, float]]
 
     @property
     def pk(self) -> str:
