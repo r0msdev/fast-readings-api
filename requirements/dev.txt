@@ -5,3 +5,4 @@ pytest-asyncio
 mongomock
 pylint
 pyright
+pika
