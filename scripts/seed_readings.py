@@ -13,10 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-try:
-    import requests
-except ImportError:
-    sys.exit('requests is not installed. Run: pip install requests')
+import httpx
 
 SAMPLE_FILE = Path(__file__).parent / 'sample' / 'readings.json'
 # DEFAULT_BASE_URL = 'https://readings-api.ashymoss-b558c711.westeurope.azurecontainerapps.io'
@@ -38,13 +35,13 @@ def post_readings(base_url: str, readings: list[dict]) -> None:
             'dataInfo': reading['dataInfo'],
         }
         try:
-            response = requests.post(
+            response = httpx.post(
                 url,
                 json=payload,
                 headers={'X-Correlation-ID': correlation_id},
                 timeout=10,
             )
-        except requests.ConnectionError:
+        except httpx.ConnectError:
             sys.exit(f'Could not connect to {url}. Is the dev server running?')
 
         if response.status_code == 201:

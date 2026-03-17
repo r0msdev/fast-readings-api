@@ -37,7 +37,7 @@ def run() -> None:
     signal.signal(signal.SIGINT, _shutdown)
 
     logger.info('Worker ready, waiting for messages')
-    queue.consume(settings.messaging_queue_name, consumer.handle)
+    queue.consume(settings.messaging_queue_name, consumer.handle, consumer.heartbeat)
     logger.info('Worker stopped')
 
 
