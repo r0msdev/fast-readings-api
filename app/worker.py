@@ -28,6 +28,8 @@ def run() -> None:
     """Connect to the configured broker and start consuming indefinitely."""
     logger.info('Worker starting, queue=%s', settings.messaging_queue_name)
     ensure_indexes()
+    from app.bootstrap import bootstrap_worker  # pylint: disable=import-outside-toplevel
+    bootstrap_worker()
 
     def _shutdown(signum: int, _frame: object) -> None:
         logger.info('Received signal %d, shutting down', signum)

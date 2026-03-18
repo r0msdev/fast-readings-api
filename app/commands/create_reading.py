@@ -5,10 +5,10 @@ from datetime import datetime
 
 from app.api import mapper
 from app.api.read_models import WeatherReadingResponse
+from app.core.bus import event_bus
+from app.core.exceptions import DuplicateResourceError
 from app.domain.entities import WeatherReading
 from app.domain.repositories import readings as repo
-from app.messaging import publisher
-from app.core.exceptions import DuplicateResourceError
 
 logger = logging.getLogger('weather')
 
@@ -40,5 +40,7 @@ class CreateReadingHandler:  # pylint: disable=too-few-public-methods
             data_info=cmd.data_info,
         ))
         logger.info('Created WeatherReading id=%s sensor=%s', entity.id, entity.sensor_name)
-        publisher.try_publish_reading_created(entity.sensor_name, entity.sensor_date)
+        entity.record_created()
+        for event in entity.collect_events():
+            event_bus.dispatch(event)
         return mapper.reading_to_dto(entity)
