@@ -5,6 +5,7 @@ from collections.abc import AsyncGenerator
 
 from fastapi import FastAPI, HTTPException
 from pydantic import ValidationError
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.config import settings
 from app.core.exceptions import DuplicateResourceError
@@ -50,6 +51,8 @@ app = FastAPI(
 )
 
 app.add_middleware(CorrelationIdMiddleware)
+
+Instrumentator().instrument(app).expose(app)
 
 app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(
