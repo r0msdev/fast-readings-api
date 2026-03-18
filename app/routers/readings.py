@@ -11,7 +11,6 @@ from app.api.write_models import CreateReadingRequest
 from app.commands.create_reading import CreateReadingCommand
 from app.commands.delete_reading import DeleteReadingCommand
 from app.core.bus import command_bus, query_bus
-from app.core.exceptions import DuplicateResourceError
 from app.core.pagination import Page, PaginatedResponse, PaginationParams, build_paginated_response
 from app.queries.readings import GetReadingByIdQuery, ListReadingsQuery
 from app.queries.stats import GetDailyStatsQuery, GetStatsListQuery
@@ -73,11 +72,8 @@ def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadi
         sensor_date=body.sensor_date,
         data_info=body.data_info,
     )
-    try:
-        entity = command_bus.dispatch(cmd)
-        return mapper.reading_to_dto(entity)
-    except DuplicateResourceError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+    entity = command_bus.dispatch(cmd)
+    return mapper.reading_to_dto(entity)
 
 
 _STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
