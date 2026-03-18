@@ -7,8 +7,8 @@ from azure.servicebus import (  # type: ignore[import-untyped]
     ServiceBusClient,
     ServiceBusSender,
     ServiceBusMessage,
-    ServiceBusError,
 )
+from azure.servicebus.exceptions import ServiceBusError  # type: ignore[import-untyped]
 
 from app.config import settings
 
