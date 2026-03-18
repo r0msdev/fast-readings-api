@@ -3,19 +3,12 @@ import logging
 from contextlib import asynccontextmanager
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI, HTTPException
-from pydantic import ValidationError
+from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.config import settings
-from app.core.exceptions import DuplicateResourceError
 from app.core.middleware import CorrelationIdMiddleware
-from app.exception_handlers import (
-    conflict_exception_handler,
-    http_exception_handler,
-    unhandled_exception_handler,
-    validation_exception_handler,
-)
+from app.exception_handlers import register_exception_handlers
 from app.routers import health, readings as readings_router
 
 logger = logging.getLogger(__name__)
@@ -54,13 +47,7 @@ app.add_middleware(CorrelationIdMiddleware)
 
 Instrumentator().instrument(app).expose(app)
 
-app.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(
-    DuplicateResourceError,
-    conflict_exception_handler,  # type: ignore[arg-type]
-)
-app.add_exception_handler(ValidationError, validation_exception_handler)  # type: ignore[arg-type]
-app.add_exception_handler(Exception, unhandled_exception_handler)
+register_exception_handlers(app)
 
 app.include_router(health.router)
 app.include_router(readings_router.router)

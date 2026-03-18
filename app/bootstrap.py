@@ -1,5 +1,8 @@
 """Composition roots — wire all bus handlers for each process entry point."""
 
+_api_bootstrapped: bool = False  # pylint: disable=invalid-name
+_worker_bootstrapped: bool = False  # pylint: disable=invalid-name
+
 
 def _register_commands() -> None:
     from app.core.bus import command_bus  # pylint: disable=import-outside-toplevel
@@ -38,16 +41,23 @@ def _register_events() -> None:
 
 def bootstrap_api() -> None:
     """Register all command, query, and event handlers for the HTTP API process."""
+    global _api_bootstrapped  # pylint: disable=global-statement
+    if _api_bootstrapped:
+        return
     _register_commands()
     _register_queries()
     _register_events()
+    _api_bootstrapped = True
 
 
 def bootstrap_worker() -> None:
     """Register all command handlers for the worker process."""
+    global _worker_bootstrapped  # pylint: disable=global-statement
+    if _worker_bootstrapped:
+        return
     from app.core.bus import command_bus  # pylint: disable=import-outside-toplevel
     from app.commands.recalculate_stats import (  # pylint: disable=import-outside-toplevel
         RecalculateStatsCommand, RecalculateStatsHandler,
     )
-
     command_bus.register(RecalculateStatsCommand, RecalculateStatsHandler().handle)
+    _worker_bootstrapped = True

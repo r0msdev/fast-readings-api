@@ -92,8 +92,6 @@ def get_stats(
         result = query_bus.dispatch(
             GetDailyStatsQuery(sensor_name=sensor_name, date=sensor_date)
         )
-        if result is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Stats not found.')
         return PaginatedResponse(count=1, next=None, previous=None, results=[result])
     page = query_bus.dispatch(GetStatsListQuery(
         sensor_name=sensor_name,
@@ -108,12 +106,9 @@ def get_reading(sensor_name: str, reading_id: str) -> WeatherReadingResponse:
     """GET /weather/{sensor_name}/{reading_id}/ — return a single reading
     by sensor name and ObjectId.
     """
-    reading = query_bus.dispatch(
+    return query_bus.dispatch(
         GetReadingByIdQuery(sensor_name=sensor_name, reading_id=reading_id)
     )
-    if reading is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Reading not found.')
-    return reading
 
 
 @router.delete('/{sensor_name}/{reading_id}/', status_code=status.HTTP_204_NO_CONTENT)
@@ -121,8 +116,6 @@ def delete_reading(sensor_name: str, reading_id: str) -> None:
     """DELETE /weather/{sensor_name}/{reading_id}/ — delete a reading by sensor name and ObjectId,
     returning 404 if absent.
     """
-    deleted = command_bus.dispatch(
+    command_bus.dispatch(
         DeleteReadingCommand(sensor_name=sensor_name, reading_id=reading_id)
     )
-    if not deleted:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Reading not found.')

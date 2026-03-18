@@ -5,6 +5,7 @@ from datetime import date
 
 from app.api import mapper
 from app.api.read_models import DailySensorStatsResponse
+from app.core.exceptions import ResourceNotFoundError
 from app.core.pagination import Page
 from app.domain.repositories import stats as repo
 
@@ -40,13 +41,18 @@ class GetDailyStatsQuery:
 class GetDailyStatsHandler:  # pylint: disable=too-few-public-methods
     """Handles GetDailyStatsQuery by fetching stats for a sensor on a given date."""
 
-    def handle(self, query: GetDailyStatsQuery) -> DailySensorStatsResponse | None:
-        """Return the DTO for the requested sensor+date, or None if absent."""
+    def handle(self, query: GetDailyStatsQuery) -> DailySensorStatsResponse:
+        """Return the DTO for the requested sensor+date.
+
+        Raises ResourceNotFoundError if no stats exist for the given sensor and date.
+        """
         entity = repo.get_daily_stats(query.sensor_name, query.date)
-        if entity:
-            logger.debug(
-                'Retrieved DailySensorStats sensor=%s date=%s',
-                query.sensor_name, query.date,
+        if entity is None:
+            raise ResourceNotFoundError(
+                f"Stats for '{query.sensor_name}' on {query.date} not found."
             )
-            return mapper.stats_to_dto(entity)
-        return None
+        logger.debug(
+            'Retrieved DailySensorStats sensor=%s date=%s',
+            query.sensor_name, query.date,
+        )
+        return mapper.stats_to_dto(entity)
