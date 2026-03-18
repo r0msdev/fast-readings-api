@@ -23,3 +23,4 @@ class MessageBus:
 
 command_bus = MessageBus()
 query_bus = MessageBus()
+event_bus = MessageBus()

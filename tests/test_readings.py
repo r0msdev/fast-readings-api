@@ -138,7 +138,7 @@ class WeatherReadingListPostTests(unittest.TestCase):
         self._stack = ExitStack()
         self._stack.enter_context(_db_patch(self.mock_db))
         self.mock_publish = self._stack.enter_context(
-            patch('app.commands.create_reading.publisher.publish_reading_created')
+            patch('app.messaging.handlers.publish_reading_changed')
         )
         self.client = self._stack.enter_context(TestClient(app))
         self.url = '/weather/aemet-zaorejas/'
@@ -269,7 +269,7 @@ class WeatherReadingDeleteTests(unittest.TestCase):
         self._stack = ExitStack()
         self._stack.enter_context(_db_patch(self.mock_db))
         self.mock_publish = self._stack.enter_context(
-            patch('app.commands.delete_reading.publisher.publish_reading_created')
+            patch('app.messaging.handlers.publish_reading_changed')
         )
         self.client = self._stack.enter_context(TestClient(app))
         self.reading = _make_reading()

@@ -2,8 +2,8 @@
 import logging
 from dataclasses import dataclass
 
+from app.core.bus import event_bus
 from app.domain.repositories import readings as repo
-from app.messaging import publisher
 
 logger = logging.getLogger('weather')
 
@@ -28,5 +28,7 @@ class DeleteReadingHandler:  # pylint: disable=too-few-public-methods
         if reading is None:
             return False
         logger.info('Deleted WeatherReading id=%s sensor=%s', cmd.reading_id, cmd.sensor_name)
-        publisher.try_publish_reading_created(reading.sensor_name, reading.sensor_date)
+        reading.record_deleted()
+        for event in reading.collect_events():
+            event_bus.dispatch(event)
         return True

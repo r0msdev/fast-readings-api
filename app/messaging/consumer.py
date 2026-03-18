@@ -1,12 +1,13 @@
-"""High-level consumer that deserialises events and delegates to domain logic."""
+"""High-level consumer that deserialises events and dispatches commands."""
 import json
 import logging
 import threading
 from datetime import date
 from pathlib import Path
 
+from app.core.bus import command_bus
 from app.core.correlation import set_correlation_id
-from app.domain.repositories import stats as stats_repo
+from app.commands.recalculate_stats import RecalculateStatsCommand
 
 logger = logging.getLogger('weather')
 
@@ -17,14 +18,12 @@ _timers: dict[str, threading.Timer] = {}
 
 
 def _process(body: str) -> None:
-    """Decode and process a single stats.recalculate message."""
+    """Decode a stats.recalculate message and dispatch the corresponding command."""
     payload = json.loads(body)
     sensor_name: str = payload['sensorName']
     sensor_date: date = date.fromisoformat(payload['date'])
     set_correlation_id(payload.get('correlationId', ''))
-    logger.info('Recalculating stats sensor=%s date=%s', sensor_name, sensor_date)
-    stats_repo.upsert_daily_stats(sensor_name, sensor_date)
-    logger.info('Stats upserted sensor=%s date=%s', sensor_name, sensor_date)
+    command_bus.dispatch(RecalculateStatsCommand(sensor_name, sensor_date))
 
 
 def handle(body: str) -> None:
