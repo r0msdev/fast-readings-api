@@ -3,10 +3,9 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 
-from app.api import mapper
-from app.api.read_models import DailySensorStatsResponse
 from app.core.exceptions import ResourceNotFoundError
 from app.core.pagination import Page
+from app.domain.entities import DailySensorStats
 from app.domain.repositories import stats as repo
 
 logger = logging.getLogger('weather')
@@ -21,14 +20,14 @@ class GetStatsListQuery:
 
 
 class GetStatsListHandler:  # pylint: disable=too-few-public-methods
-    """Handles GetStatsListQuery by fetching and mapping stats for a sensor."""
+    """Handles GetStatsListQuery by fetching stats for a sensor."""
 
-    def handle(self, query: GetStatsListQuery) -> Page[DailySensorStatsResponse]:
-        """Return a Page of DailySensorStatsResponses for the requested sensor."""
+    def handle(self, query: GetStatsListQuery) -> Page[DailySensorStats]:
+        """Return a Page of DailySensorStats domain entities for the requested sensor."""
         total = repo.count_stats(query.sensor_name)
-        entities = repo.get_stats_list(query.sensor_name, skip=query.skip, limit=query.limit)
+        items = repo.get_stats_list(query.sensor_name, skip=query.skip, limit=query.limit)
         logger.debug('Listed DailySensorStats sensor=%s count=%d', query.sensor_name, total)
-        return Page(items=[mapper.stats_to_dto(e) for e in entities], total=total)
+        return Page(items=items, total=total)
 
 
 @dataclass
@@ -41,8 +40,8 @@ class GetDailyStatsQuery:
 class GetDailyStatsHandler:  # pylint: disable=too-few-public-methods
     """Handles GetDailyStatsQuery by fetching stats for a sensor on a given date."""
 
-    def handle(self, query: GetDailyStatsQuery) -> DailySensorStatsResponse:
-        """Return the DTO for the requested sensor+date.
+    def handle(self, query: GetDailyStatsQuery) -> DailySensorStats:
+        """Return the domain entity for the requested sensor+date.
 
         Raises ResourceNotFoundError if no stats exist for the given sensor and date.
         """
@@ -55,4 +54,4 @@ class GetDailyStatsHandler:  # pylint: disable=too-few-public-methods
             'Retrieved DailySensorStats sensor=%s date=%s',
             query.sensor_name, query.date,
         )
-        return mapper.stats_to_dto(entity)
+        return entity

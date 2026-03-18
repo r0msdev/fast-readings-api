@@ -1,17 +1,18 @@
 """API router for the weather readings and sensor stats endpoints."""
 import logging
 from datetime import date
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
+from app.api import mapper
 from app.api.read_models import DailySensorStatsResponse, WeatherReadingResponse
 from app.api.write_models import CreateReadingRequest
 from app.commands.create_reading import CreateReadingCommand
 from app.commands.delete_reading import DeleteReadingCommand
 from app.core.bus import command_bus, query_bus
 from app.core.exceptions import DuplicateResourceError
-from app.core.pagination import PaginatedResponse, PaginationParams, build_paginated_response
+from app.core.pagination import Page, PaginatedResponse, PaginationParams, build_paginated_response
 from app.queries.readings import GetReadingByIdQuery, ListReadingsQuery
 from app.queries.stats import GetDailyStatsQuery, GetStatsListQuery
 
@@ -34,7 +35,8 @@ def list_all_readings(
         skip=pagination.skip,
         limit=pagination.page_size,
     ))
-    return build_paginated_response(request, page, pagination)
+    mapped = Page(items=[mapper.reading_to_dto(e) for e in page.items], total=page.total)
+    return build_paginated_response(request, mapped, pagination)
 
 
 @router.get('/{sensor_name}/')
@@ -52,7 +54,8 @@ def list_readings_by_sensor(
         skip=pagination.skip,
         limit=pagination.page_size,
     ))
-    return build_paginated_response(request, page, pagination)
+    mapped = Page(items=[mapper.reading_to_dto(e) for e in page.items], total=page.total)
+    return build_paginated_response(request, mapped, pagination)
 
 
 @router.post('/{sensor_name}/', status_code=status.HTTP_201_CREATED)
@@ -71,12 +74,18 @@ def create_reading(sensor_name: str, body: CreateReadingRequest) -> WeatherReadi
         data_info=body.data_info,
     )
     try:
-        return command_bus.dispatch(cmd)
+        entity = command_bus.dispatch(cmd)
+        return mapper.reading_to_dto(entity)
     except DuplicateResourceError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
 
-@router.get('/{sensor_name}/stats/')
+_STATS_RESPONSES: dict[int | str, dict[str, Any]] = {
+    404: {'description': 'No stats found for the given sensor or date.'},
+}
+
+
+@router.get('/{sensor_name}/stats/', responses=_STATS_RESPONSES)
 def get_stats(
     request: Request,
     sensor_name: str,
@@ -92,26 +101,39 @@ def get_stats(
         result = query_bus.dispatch(
             GetDailyStatsQuery(sensor_name=sensor_name, date=sensor_date)
         )
-        return PaginatedResponse(count=1, next=None, previous=None, results=[result])
+        return PaginatedResponse(
+            count=1, next=None, previous=None, results=[mapper.stats_to_dto(result)]
+        )
     page = query_bus.dispatch(GetStatsListQuery(
         sensor_name=sensor_name,
         skip=pagination.skip,
         limit=pagination.page_size,
     ))
-    return build_paginated_response(request, page, pagination)
+    mapped = Page(items=[mapper.stats_to_dto(e) for e in page.items], total=page.total)
+    return build_paginated_response(request, mapped, pagination)
 
 
-@router.get('/{sensor_name}/{reading_id}/')
+_NOT_FOUND: dict[int | str, dict[str, Any]] = {
+    404: {'description': 'Reading not found.'}
+}
+
+
+@router.get('/{sensor_name}/{reading_id}/', responses=_NOT_FOUND)
 def get_reading(sensor_name: str, reading_id: str) -> WeatherReadingResponse:
     """GET /weather/{sensor_name}/{reading_id}/ — return a single reading
     by sensor name and ObjectId.
     """
-    return query_bus.dispatch(
+    reading = query_bus.dispatch(
         GetReadingByIdQuery(sensor_name=sensor_name, reading_id=reading_id)
     )
+    return mapper.reading_to_dto(reading)
 
 
-@router.delete('/{sensor_name}/{reading_id}/', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    '/{sensor_name}/{reading_id}/',
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses=_NOT_FOUND,
+)
 def delete_reading(sensor_name: str, reading_id: str) -> None:
     """DELETE /weather/{sensor_name}/{reading_id}/ — delete a reading by sensor name and ObjectId,
     returning 404 if absent.

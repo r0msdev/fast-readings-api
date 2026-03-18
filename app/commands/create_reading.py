@@ -3,8 +3,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.api import mapper
-from app.api.read_models import WeatherReadingResponse
 from app.core.bus import event_bus
 from app.core.exceptions import DuplicateResourceError
 from app.domain.entities import WeatherReading
@@ -24,8 +22,8 @@ class CreateReadingCommand:
 class CreateReadingHandler:  # pylint: disable=too-few-public-methods
     """Handles CreateReadingCommand by persisting the reading and publishing an event."""
 
-    def handle(self, cmd: CreateReadingCommand) -> WeatherReadingResponse:
-        """Persist a new reading and publish a stats recalculation event.
+    def handle(self, cmd: CreateReadingCommand) -> WeatherReading:
+        """Persist a new reading, publish a domain event, and return the domain entity.
 
         Raises DuplicateResourceError if a reading with the same sensorName
         and sensorDate already exists.
@@ -43,4 +41,4 @@ class CreateReadingHandler:  # pylint: disable=too-few-public-methods
         entity.record_created()
         for event in entity.collect_events():
             event_bus.dispatch(event)
-        return mapper.reading_to_dto(entity)
+        return entity

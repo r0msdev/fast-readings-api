@@ -3,10 +3,9 @@ import logging
 from dataclasses import dataclass, field
 from datetime import date
 
-from app.api import mapper
-from app.api.read_models import WeatherReadingResponse
 from app.core.exceptions import ResourceNotFoundError
 from app.core.pagination import Page
+from app.domain.entities import WeatherReading
 from app.domain.repositories import readings as repo
 
 logger = logging.getLogger('weather')
@@ -22,22 +21,22 @@ class ListReadingsQuery:
 
 
 class ListReadingsHandler:  # pylint: disable=too-few-public-methods
-    """Handles ListReadingsQuery by fetching and mapping matching readings."""
+    """Handles ListReadingsQuery by fetching matching readings."""
 
-    def handle(self, query: ListReadingsQuery) -> Page[WeatherReadingResponse]:
-        """Execute the query and return a Page of WeatherReadingResponses."""
+    def handle(self, query: ListReadingsQuery) -> Page[WeatherReading]:
+        """Execute the query and return a Page of WeatherReading domain entities."""
         if query.sensor_name:
             logger.debug('Filtering readings by sensorName=%s', query.sensor_name)
         if query.sensor_date:
             logger.debug('Filtering readings by sensorDate=%s', query.sensor_date)
         total = repo.count_readings(sensor_name=query.sensor_name, sensor_date=query.sensor_date)
-        entities = repo.list_readings(
+        items = repo.list_readings(
             sensor_name=query.sensor_name,
             sensor_date=query.sensor_date,
             skip=query.skip,
             limit=query.limit,
         )
-        return Page(items=[mapper.reading_to_dto(e) for e in entities], total=total)
+        return Page(items=items, total=total)
 
 
 @dataclass
@@ -50,8 +49,8 @@ class GetReadingByIdQuery:
 class GetReadingByIdHandler:  # pylint: disable=too-few-public-methods
     """Handles GetReadingByIdQuery by fetching the reading from the repository."""
 
-    def handle(self, query: GetReadingByIdQuery) -> WeatherReadingResponse:
-        """Return the matching DTO.
+    def handle(self, query: GetReadingByIdQuery) -> WeatherReading:
+        """Return the matching domain entity.
 
         Raises ResourceNotFoundError if no reading exists for the given sensor and ID.
         """
@@ -59,4 +58,4 @@ class GetReadingByIdHandler:  # pylint: disable=too-few-public-methods
         if entity is None:
             raise ResourceNotFoundError(f"Reading '{query.reading_id}' not found.")
         logger.debug('Retrieved WeatherReading id=%s', query.reading_id)
-        return mapper.reading_to_dto(entity)
+        return entity
