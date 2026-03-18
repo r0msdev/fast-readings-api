@@ -27,6 +27,8 @@ class StatsDoc(TypedDict):
     date: datetime | str
     readingCount: int
     stats: dict[str, dict[str, float]]
+    createdAt: datetime
+    updatedAt: datetime
 
 
 def doc_to_reading(doc: ReadingDoc) -> WeatherReading:
@@ -36,6 +38,7 @@ def doc_to_reading(doc: ReadingDoc) -> WeatherReading:
         sensor_name=doc['sensorName'],
         sensor_date=doc['sensorDate'],
         data_info=doc['dataInfo'],
+        created_at=doc.get('createdAt'),
     )
 
 
@@ -59,4 +62,6 @@ def doc_to_stats(doc: StatsDoc) -> DailySensorStats:
         date=stat_date,
         reading_count=doc['readingCount'],
         stats=doc['stats'],
+        created_at=doc.get('createdAt'),
+        updated_at=doc.get('updatedAt'),
     )

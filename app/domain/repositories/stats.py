@@ -68,6 +68,7 @@ def upsert_daily_stats(sensor_name: str, sensor_date: date) -> None:
     ]
     results = list(db[READINGS_COLLECTION].aggregate(pipeline))
     if not results or results[0]['count'] == 0:
+        db[COLLECTION].delete_one({'sensorName': sensor_name, 'date': start})
         return
 
     raw = results[0]
@@ -87,9 +88,13 @@ def upsert_daily_stats(sensor_name: str, sensor_date: date) -> None:
             }
 
     pk = f'{sensor_name}#{sensor_date.year}'
-    db[COLLECTION].replace_one(
+    now = datetime.now(tz=timezone.utc)
+    db[COLLECTION].update_one(
         {'pk': pk, 'sensorName': sensor_name, 'date': start},
-        {'pk': pk, 'sensorName': sensor_name, 'date': start,
-         'readingCount': raw['count'], 'stats': stats},
+        {
+            '$set': {'pk': pk, 'sensorName': sensor_name, 'date': start,
+                     'readingCount': raw['count'], 'stats': stats, 'updatedAt': now},
+            '$setOnInsert': {'createdAt': now},
+        },
         upsert=True,
     )

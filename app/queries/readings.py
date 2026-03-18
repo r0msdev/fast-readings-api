@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from app.api import mapper
-from app.api.read_models import WeatherReadingDTO
+from app.api.read_models import WeatherReadingResponse
 from app.core.pagination import Page
 from app.domain.repositories import readings as repo
 
@@ -23,8 +23,8 @@ class ListReadingsQuery:
 class ListReadingsHandler:  # pylint: disable=too-few-public-methods
     """Handles ListReadingsQuery by fetching and mapping matching readings."""
 
-    def handle(self, query: ListReadingsQuery) -> Page[WeatherReadingDTO]:
-        """Execute the query and return a Page of WeatherReadingDTOs."""
+    def handle(self, query: ListReadingsQuery) -> Page[WeatherReadingResponse]:
+        """Execute the query and return a Page of WeatherReadingResponses."""
         if query.sensor_name:
             logger.debug('Filtering readings by sensorName=%s', query.sensor_name)
         if query.sensor_date:
@@ -49,7 +49,7 @@ class GetReadingByIdQuery:
 class GetReadingByIdHandler:  # pylint: disable=too-few-public-methods
     """Handles GetReadingByIdQuery by fetching the reading from the repository."""
 
-    def handle(self, query: GetReadingByIdQuery) -> WeatherReadingDTO | None:
+    def handle(self, query: GetReadingByIdQuery) -> WeatherReadingResponse | None:
         """Return the matching DTO, or None if the reading does not exist."""
         entity = repo.get_reading_by_id(query.sensor_name, query.reading_id)
         if entity:

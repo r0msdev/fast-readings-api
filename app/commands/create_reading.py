@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.api import mapper
-from app.api.read_models import WeatherReadingDTO
+from app.api.read_models import WeatherReadingResponse
 from app.domain.entities import WeatherReading
 from app.domain.repositories import readings as repo
 from app.messaging import publisher
@@ -24,7 +24,7 @@ class CreateReadingCommand:
 class CreateReadingHandler:  # pylint: disable=too-few-public-methods
     """Handles CreateReadingCommand by persisting the reading and publishing an event."""
 
-    def handle(self, cmd: CreateReadingCommand) -> WeatherReadingDTO:
+    def handle(self, cmd: CreateReadingCommand) -> WeatherReadingResponse:
         """Persist a new reading and publish a stats recalculation event.
 
         Raises DuplicateResourceError if a reading with the same sensorName

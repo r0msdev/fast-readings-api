@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from app.api import mapper
-from app.api.read_models import DailySensorStatsDTO
+from app.api.read_models import DailySensorStatsResponse
 from app.core.pagination import Page
 from app.domain.repositories import stats as repo
 
@@ -22,8 +22,8 @@ class GetStatsListQuery:
 class GetStatsListHandler:  # pylint: disable=too-few-public-methods
     """Handles GetStatsListQuery by fetching and mapping stats for a sensor."""
 
-    def handle(self, query: GetStatsListQuery) -> Page[DailySensorStatsDTO]:
-        """Return a Page of DailySensorStatsDTOs for the requested sensor."""
+    def handle(self, query: GetStatsListQuery) -> Page[DailySensorStatsResponse]:
+        """Return a Page of DailySensorStatsResponses for the requested sensor."""
         total = repo.count_stats(query.sensor_name)
         entities = repo.get_stats_list(query.sensor_name, skip=query.skip, limit=query.limit)
         logger.debug('Listed DailySensorStats sensor=%s count=%d', query.sensor_name, total)
@@ -40,7 +40,7 @@ class GetDailyStatsQuery:
 class GetDailyStatsHandler:  # pylint: disable=too-few-public-methods
     """Handles GetDailyStatsQuery by fetching stats for a sensor on a given date."""
 
-    def handle(self, query: GetDailyStatsQuery) -> DailySensorStatsDTO | None:
+    def handle(self, query: GetDailyStatsQuery) -> DailySensorStatsResponse | None:
         """Return the DTO for the requested sensor+date, or None if absent."""
         entity = repo.get_daily_stats(query.sensor_name, query.date)
         if entity:

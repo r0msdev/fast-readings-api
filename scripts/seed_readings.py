@@ -16,11 +16,11 @@ from pathlib import Path
 import httpx
 
 SAMPLE_FILE = Path(__file__).parent / 'sample' / 'readings.json'
-DEFAULT_BASE_URL = 'http://localhost:8000'
+DEFAULT_BASE_URL = 'https://api-readings.thankfulwater-48ccd37b.spaincentral.azurecontainerapps.io'
 ENDPOINT = '/weather/{sensor_name}/'
 
 
-def post_readings(base_url: str, readings: list[dict]) -> None:
+def post_readings(base_url: str, readings: list[dict[str, object]]) -> None:
     base = base_url.rstrip('/')
     created = skipped = failed = 0
 
@@ -66,7 +66,7 @@ def main() -> None:
                         help=f'Base URL of the API (default: {DEFAULT_BASE_URL})')
     args = parser.parse_args()
 
-    readings = json.loads(SAMPLE_FILE.read_text(encoding='utf-8'))
+    readings: list[dict[str, object]] = json.loads(SAMPLE_FILE.read_text(encoding='utf-8'))
     print(f'Posting {len(readings)} reading(s) to {args.base_url}/weather/{{sensorName}}/\n')
     post_readings(args.base_url, readings)
 

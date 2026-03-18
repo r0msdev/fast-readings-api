@@ -6,7 +6,7 @@ from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict, Field
 
 
-class WeatherReadingDTO(BaseModel):
+class WeatherReadingResponse(BaseModel):
     """Read model for a single sensor reading returned by the API."""
     model_config = ConfigDict(populate_by_name=True)
 
@@ -16,7 +16,7 @@ class WeatherReadingDTO(BaseModel):
     data_info: dict[str, float] = Field(serialization_alias='dataInfo')
 
 
-class DailySensorStatsDTO(BaseModel):
+class DailySensorStatsResponse(BaseModel):
     """Read model for pre-aggregated daily stats for one sensor."""
     model_config = ConfigDict(populate_by_name=True)
 

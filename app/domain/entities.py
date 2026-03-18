@@ -12,6 +12,7 @@ class WeatherReading:
     sensor_date: datetime
     data_info: dict[str, float]
     id: str | None = field(default=None)
+    created_at: datetime | None = field(default=None)
 
     @property
     def pk(self) -> str:
@@ -26,6 +27,8 @@ class DailySensorStats:
     date: date
     reading_count: int
     stats: dict[str, dict[str, float]]
+    created_at: datetime | None = field(default=None)
+    updated_at: datetime | None = field(default=None)
 
     @property
     def pk(self) -> str:
