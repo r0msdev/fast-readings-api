@@ -5,6 +5,7 @@ from datetime import date
 
 from app.api import mapper
 from app.api.read_models import WeatherReadingResponse
+from app.core.exceptions import ResourceNotFoundError
 from app.core.pagination import Page
 from app.domain.repositories import readings as repo
 
@@ -49,10 +50,13 @@ class GetReadingByIdQuery:
 class GetReadingByIdHandler:  # pylint: disable=too-few-public-methods
     """Handles GetReadingByIdQuery by fetching the reading from the repository."""
 
-    def handle(self, query: GetReadingByIdQuery) -> WeatherReadingResponse | None:
-        """Return the matching DTO, or None if the reading does not exist."""
+    def handle(self, query: GetReadingByIdQuery) -> WeatherReadingResponse:
+        """Return the matching DTO.
+
+        Raises ResourceNotFoundError if no reading exists for the given sensor and ID.
+        """
         entity = repo.get_reading_by_id(query.sensor_name, query.reading_id)
-        if entity:
-            logger.debug('Retrieved WeatherReading id=%s', query.reading_id)
-            return mapper.reading_to_dto(entity)
-        return None
+        if entity is None:
+            raise ResourceNotFoundError(f"Reading '{query.reading_id}' not found.")
+        logger.debug('Retrieved WeatherReading id=%s', query.reading_id)
+        return mapper.reading_to_dto(entity)

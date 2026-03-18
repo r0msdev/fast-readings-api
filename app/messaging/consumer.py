@@ -14,7 +14,45 @@ logger = logging.getLogger('weather')
 HEARTBEAT_FILE = Path('/tmp/worker.heartbeat')
 DEBOUNCE_DELAY = 15  # seconds
 
-_timers: dict[str, threading.Timer] = {}
+
+class Debouncer:
+    """Leading-edge debounce for sensor+date keys.
+
+    The first message for a given key schedules _process after DEBOUNCE_DELAY
+    seconds; duplicate messages within that window are silently dropped so rapid
+    bursts produce only one DB upsert. Encapsulating state in a class makes the
+    timer dict resettable in tests without relying on module reload.
+    """
+
+    def __init__(self, delay: float = DEBOUNCE_DELAY) -> None:
+        self._delay = delay
+        self._timers: dict[str, threading.Timer] = {}
+
+    def handle(self, body: str) -> None:
+        """Schedule _process for the decoded key, discarding duplicates."""
+        payload = json.loads(body)
+        key = f"{payload['sensorName']}:{payload['date']}"
+        if key in self._timers:
+            logger.debug('Debounced key=%s', key)
+            return
+
+        def _fire(b: str = body, k: str = key) -> None:
+            self._timers.pop(k, None)
+            _process(b)
+
+        t = threading.Timer(self._delay, _fire)
+        self._timers[key] = t
+        t.start()
+        logger.debug('Debounce scheduled key=%s', key)
+
+    def reset(self) -> None:
+        """Cancel all pending timers and clear state — intended for tests."""
+        for t in self._timers.values():
+            t.cancel()
+        self._timers.clear()
+
+
+_debouncer = Debouncer()
 
 
 def _process(body: str) -> None:
@@ -27,24 +65,8 @@ def _process(body: str) -> None:
 
 
 def handle(body: str) -> None:
-    """Leading-edge debounce: first message for a sensor+date key schedules
-    _process after DEBOUNCE_DELAY seconds; duplicates within that window are
-    discarded so rapid bursts produce only one DB upsert.
-    """
-    payload = json.loads(body)
-    key = f"{payload['sensorName']}:{payload['date']}"
-    if key in _timers:
-        logger.debug('Debounced key=%s', key)
-        return
-
-    def _fire(b: str = body, k: str = key) -> None:
-        _timers.pop(k, None)
-        _process(b)
-
-    t = threading.Timer(DEBOUNCE_DELAY, _fire)
-    _timers[key] = t
-    t.start()
-    logger.debug('Debounce scheduled key=%s', key)
+    """Public entry point: forward to the module-level Debouncer instance."""
+    _debouncer.handle(body)
 
 
 def heartbeat() -> None:
