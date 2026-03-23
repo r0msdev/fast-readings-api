@@ -345,14 +345,14 @@ class WeatherReadingBatchPostTests(unittest.TestCase):
         return {**self.item, 'sensorDate': date_str}
 
     def test_single_item_returns_207(self):
-        response = self._post({'items': [self.item]})
+        response = self._post([self.item])
         self.assertEqual(response.status_code, 207)
 
     def test_all_created_items_have_status_201(self):
-        payload = {'items': [
+        payload = [
             self._make_item('2026-02-15T23:00:00+00:00'),
             self._make_item('2026-02-16T23:00:00+00:00'),
-        ]}
+        ]
         results = self._post(payload).json()
         self.assertEqual(len(results), 2)
         for item in results:
@@ -362,10 +362,10 @@ class WeatherReadingBatchPostTests(unittest.TestCase):
     def test_partial_duplicate_returns_mixed_statuses(self):
         # Pre-create one reading
         self.client.post('/weather/aemet-zaorejas/', json=self.item)
-        payload = {'items': [
+        payload = [
             self._make_item('2026-02-15T23:00:00+00:00'),  # duplicate
             self._make_item('2026-02-16T23:00:00+00:00'),  # new
-        ]}
+        ]
         results = self._post(payload).json()
         self.assertEqual(len(results), 2)
         statuses = {r['status'] for r in results}
@@ -374,38 +374,38 @@ class WeatherReadingBatchPostTests(unittest.TestCase):
 
     def test_all_duplicate_items_return_409(self):
         self.client.post('/weather/aemet-zaorejas/', json=self.item)
-        results = self._post({'items': [self.item]}).json()
+        results = self._post([self.item]).json()
         self.assertEqual(results[0]['status'], 409)
         self.assertIsNone(results[0]['data'])
         self.assertIsNotNone(results[0]['error'])
 
-    def test_empty_items_returns_422(self):
-        response = self._post({'items': []})
+    def test_empty_array_returns_422(self):
+        response = self._post([])
         self.assertEqual(response.status_code, 422)
 
-    def test_missing_items_key_returns_422(self):
+    def test_non_array_body_returns_422(self):
         response = self._post({})
         self.assertEqual(response.status_code, 422)
 
     def test_sensor_name_mismatch_returns_422(self):
         item = {**self.item, 'sensorName': 'other-sensor'}
-        response = self._post({'items': [item]})
+        response = self._post([item])
         self.assertEqual(response.status_code, 422)
         self.assertIn('sensorName', response.text)
 
     def test_batch_persists_all_created_readings(self):
-        payload = {'items': [
+        payload = [
             self._make_item('2026-02-15T23:00:00+00:00'),
             self._make_item('2026-02-16T23:00:00+00:00'),
-        ]}
+        ]
         self._post(payload)
         body = self.client.get('/weather/aemet-zaorejas/').json()
         self.assertEqual(body['count'], 2)
 
     def test_batch_publishes_event_per_created_item(self):
-        payload = {'items': [
+        payload = [
             self._make_item('2026-02-15T23:00:00+00:00'),
             self._make_item('2026-02-16T23:00:00+00:00'),
-        ]}
+        ]
         self._post(payload)
         self.assertEqual(self.mock_publish.call_count, 2)

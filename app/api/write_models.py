@@ -15,6 +15,4 @@ class CreateReadingRequest(BaseModel):
     data_info: dict[str, float] = Field(alias='dataInfo', min_length=1)
 
 
-class CreateReadingsBatchRequest(BaseModel):
-    """Request body for bulk-creating readings under one sensor."""
-    items: list[CreateReadingRequest] = Field(min_length=1, max_length=100)
+

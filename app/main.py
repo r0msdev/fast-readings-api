@@ -18,8 +18,9 @@ logger = logging.getLogger(__name__)
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Configure logging, register bus handlers, and ensure MongoDB indexes."""
     logging.basicConfig(level=settings.log_level.upper())
-    # Silence pika's verbose connection-lifecycle INFO logs
+    # Silence verbose INFO probing logs from third-party libraries
     logging.getLogger('pika').setLevel(logging.WARNING)
+    logging.getLogger('azure.identity').setLevel(logging.WARNING)
     logger.info("Starting %s v%s", settings.app_name, settings.app_version)
 
     # Import here to trigger @register_indexes decorators in repository modules

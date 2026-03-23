@@ -3,11 +3,11 @@ import logging
 from datetime import date
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
 
 from app.api import mapper
 from app.api.read_models import BatchResultItem, DailySensorStatsResponse, WeatherReadingResponse
-from app.api.write_models import CreateReadingRequest, CreateReadingsBatchRequest
+from app.api.write_models import CreateReadingRequest
 from app.commands.create_reading import CreateReadingCommand
 from app.commands.create_readings_batch import CreateReadingsBatchCommand
 from app.commands.delete_reading import DeleteReadingCommand
@@ -118,13 +118,13 @@ def get_stats(
 @router.post('/{sensor_name}/batch/', status_code=status.HTTP_207_MULTI_STATUS)
 def create_readings_batch(
     sensor_name: _SENSOR_NAME_PATH,
-    body: CreateReadingsBatchRequest,
+    body: Annotated[list[CreateReadingRequest], Body(min_length=1, max_length=100)],
 ) -> list[BatchResultItem]:
     """POST /weather/{sensor_name}/batch/ — create multiple readings, returning per-item outcomes.
 
     Defined before /{reading_id}/ to prevent FastAPI matching 'batch' as an ObjectId.
     """
-    for item in body.items:
+    for item in body:
         if item.sensor_name != sensor_name:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -132,7 +132,7 @@ def create_readings_batch(
             )
     cmd = CreateReadingsBatchCommand(
         sensor_name=sensor_name,
-        items=[(item.sensor_date, item.data_info) for item in body.items],
+        items=[(item.sensor_date, item.data_info) for item in body],
     )
     return command_bus.dispatch(cmd)
 
