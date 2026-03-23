@@ -9,9 +9,7 @@ import pytest
 from app.core.bus import EventBus, HasDomainEvents, SingleHandlerBus
 
 
-# ---------------------------------------------------------------------------
-# Test doubles
-# ---------------------------------------------------------------------------
+# ── Test doubles ────────────────────────────────────────────────────────────
 
 @dataclass
 class _Cmd:
@@ -47,9 +45,7 @@ class _PlainResult:
     value: int
 
 
-# ---------------------------------------------------------------------------
-# HasDomainEvents Protocol
-# ---------------------------------------------------------------------------
+# ── HasDomainEvents Protocol ────────────────────────────────────────────────
 
 class TestHasDomainEventsProtocol:
     def test_aggregate_satisfies_protocol(self) -> None:
@@ -62,9 +58,7 @@ class TestHasDomainEventsProtocol:
         assert not isinstance("hello", HasDomainEvents)
 
 
-# ---------------------------------------------------------------------------
-# SingleHandlerBus — registration
-# ---------------------------------------------------------------------------
+# ── SingleHandlerBus — registration ─────────────────────────────────────────
 
 class TestSingleHandlerBusRegistration:
     def test_register_and_dispatch_returns_handler_result(self) -> None:
@@ -91,9 +85,7 @@ class TestSingleHandlerBusRegistration:
         assert bus.dispatch(_OtherCmd(value='hi')) == 'HI'
 
 
-# ---------------------------------------------------------------------------
-# SingleHandlerBus — event forwarding via HasDomainEvents
-# ---------------------------------------------------------------------------
+# ── SingleHandlerBus — event forwarding via HasDomainEvents ─────────────────
 
 class TestSingleHandlerBusEventForwarding:
     def test_events_forwarded_to_event_bus_after_handler(self) -> None:
@@ -168,9 +160,7 @@ class TestSingleHandlerBusEventForwarding:
         assert len(received) == 1  # second dispatch produces no new events
 
 
-# ---------------------------------------------------------------------------
-# SingleHandlerBus — post-dispatch hooks
-# ---------------------------------------------------------------------------
+# ── SingleHandlerBus — post-dispatch hooks ───────────────────────────────────
 
 class TestSingleHandlerBusHooks:
     def test_single_hook_called_with_result(self) -> None:
@@ -219,9 +209,7 @@ class TestSingleHandlerBusHooks:
         assert bus.dispatch(_Cmd(value=1)) == _PlainResult(value=42)
 
 
-# ---------------------------------------------------------------------------
-# EventBus
-# ---------------------------------------------------------------------------
+# ── EventBus ─────────────────────────────────────────────────────────────────
 
 class TestEventBus:
     def test_single_handler_called(self) -> None:
@@ -263,9 +251,7 @@ class TestEventBus:
         assert len(received_other) == 1
 
 
-# ---------------------------------------------------------------------------
-# Debug logging
-# ---------------------------------------------------------------------------
+# ── Debug logging ────────────────────────────────────────────────────────────
 
 class TestSingleHandlerBusLogging:
     def test_debug_messages_emitted(self, caplog: pytest.LogCaptureFixture) -> None:

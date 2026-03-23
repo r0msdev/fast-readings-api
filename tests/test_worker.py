@@ -15,6 +15,7 @@ from app.core.bus import command_bus
 from app.messaging.consumer import Debouncer, _process
 
 
+# ── _process() — command dispatch ────────────────────────────────────────────
 class ProcessTests(unittest.TestCase):
     """Tests for the _process() free function."""
 
@@ -35,6 +36,7 @@ class ProcessTests(unittest.TestCase):
         self.assertEqual(cmd.sensor_date, date(2026, 2, 15))
 
 
+# ── Debouncer — deduplication ────────────────────────────────────────────────
 class DebouncerTests(unittest.TestCase):
     """Tests for the Debouncer class."""
 
@@ -62,6 +64,7 @@ class DebouncerTests(unittest.TestCase):
             debouncer.reset()
 
 
+# ── RecalculateStatsHandler — upsert ─────────────────────────────────────────
 class RecalculateStatsHandlerTests(unittest.TestCase):
     """Tests for RecalculateStatsHandler."""
 

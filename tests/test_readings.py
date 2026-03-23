@@ -39,6 +39,7 @@ def _db_patch(mock_db):
     return patch('app.infrastructure.database.mongo.get_database', return_value=mock_db)
 
 
+# ── GET /weather/ — list ─────────────────────────────────────────────────────
 class WeatherReadingListGetTests(unittest.TestCase):
 
     def setUp(self):
@@ -130,6 +131,7 @@ class WeatherReadingListGetTests(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
 
 
+# ── POST /weather/{sensor}/ — create ─────────────────────────────────────────
 class WeatherReadingListPostTests(unittest.TestCase):
 
     def setUp(self):
@@ -230,6 +232,7 @@ class WeatherReadingListPostTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
 
 
+# ── GET /weather/{sensor}/{id}/ — detail ─────────────────────────────────────
 class WeatherReadingDetailGetTests(unittest.TestCase):
 
     def setUp(self):
@@ -261,6 +264,7 @@ class WeatherReadingDetailGetTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+# ── DELETE /weather/{sensor}/{id}/ ───────────────────────────────────────────
 class WeatherReadingDeleteTests(unittest.TestCase):
 
     def setUp(self):
@@ -311,6 +315,7 @@ class WeatherReadingDeleteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
 
+# ── POST /weather/{sensor}/batch/ — batch ────────────────────────────────────
 class WeatherReadingBatchPostTests(unittest.TestCase):
 
     def setUp(self):
