@@ -14,7 +14,7 @@ logger = logging.getLogger('weather')
 
 
 @runtime_checkable
-class HasDomainEvents(Protocol):
+class HasDomainEvents(Protocol):  # pylint: disable=too-few-public-methods
     """Structural protocol satisfied by any aggregate that accumulates domain events.
 
     Mark entities with ``record_*`` methods and a ``collect_events()`` drain so
@@ -22,7 +22,9 @@ class HasDomainEvents(Protocol):
     concrete types.
     """
 
-    def collect_events(self) -> list[Any]: ...  # noqa: D102
+    def collect_events(self) -> list[Any]:
+        """Drain and return all pending domain events."""
+        ...  # pylint: disable=unnecessary-ellipsis
 
 
 class SingleHandlerBus:
