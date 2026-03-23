@@ -9,6 +9,10 @@ from app.config import settings
 logger = logging.getLogger('weather')
 
 
+def close() -> None:
+    """No-op: RabbitMQ opens a fresh connection per call, so there is nothing to release."""
+
+
 def ping() -> None:
     """Open and immediately close a connection to verify broker reachability."""
     conn = pika.BlockingConnection(pika.URLParameters(settings.rabbitmq_url))

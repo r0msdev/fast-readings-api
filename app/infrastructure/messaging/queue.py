@@ -42,3 +42,9 @@ def consume(
 ) -> None:
     """Block forever, calling callback(body_str) for each message received."""
     _get_backend().consume(queue_name, callback, heartbeat_fn)
+
+
+def close() -> None:
+    """Release any persistent connections held by the configured backend."""
+    if _state.backend is not None:
+        _state.backend.close()

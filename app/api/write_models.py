@@ -13,6 +13,3 @@ class CreateReadingRequest(BaseModel):
     )
     sensor_date: datetime = Field(alias='sensorDate')
     data_info: dict[str, float] = Field(alias='dataInfo', min_length=1)
-
-
-

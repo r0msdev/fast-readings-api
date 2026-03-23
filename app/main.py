@@ -38,6 +38,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
     logger.info("Shutting down %s", settings.app_name)
+    queue.close()
 
 
 app = FastAPI(
