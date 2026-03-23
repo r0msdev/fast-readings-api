@@ -7,9 +7,14 @@ _worker_bootstrapped: bool = False  # pylint: disable=invalid-name
 def _register_commands() -> None:
     from app.core.bus import command_bus  # pylint: disable=import-outside-toplevel
     from app.commands.create_reading import CreateReadingCommand, CreateReadingHandler  # pylint: disable=import-outside-toplevel
+    from app.commands.create_readings_batch import (  # pylint: disable=import-outside-toplevel
+        CreateReadingsBatchCommand,
+        CreateReadingsBatchHandler,
+    )
     from app.commands.delete_reading import DeleteReadingCommand, DeleteReadingHandler  # pylint: disable=import-outside-toplevel
 
     command_bus.register(CreateReadingCommand, CreateReadingHandler().handle)
+    command_bus.register(CreateReadingsBatchCommand, CreateReadingsBatchHandler().handle)
     command_bus.register(DeleteReadingCommand, DeleteReadingHandler().handle)
 
 

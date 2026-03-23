@@ -24,3 +24,12 @@ class DailySensorStatsResponse(BaseModel):
     date: date
     reading_count: int = Field(serialization_alias='readingCount')
     stats: dict[str, dict[str, float]]
+
+
+class BatchResultItem(BaseModel):
+    """Per-item outcome in a bulk-create 207 response."""
+    model_config = ConfigDict(populate_by_name=True)
+
+    status: int
+    data: WeatherReadingResponse | None = None
+    error: str | None = None

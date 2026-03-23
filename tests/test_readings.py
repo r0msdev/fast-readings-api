@@ -309,3 +309,98 @@ class WeatherReadingDeleteTests(unittest.TestCase):
         # original reading must still exist under its own sensor
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
+
+
+class WeatherReadingBatchPostTests(unittest.TestCase):
+
+    def setUp(self):
+        self.mock_db = mongomock.MongoClient()['readings']
+        _storage.reset_client()
+        self._stack = ExitStack()
+        self._stack.enter_context(_db_patch(self.mock_db))
+        self.mock_publish = self._stack.enter_context(
+            patch('app.messaging.handlers.publish_reading_changed')
+        )
+        self.client = self._stack.enter_context(TestClient(app))
+        self.url = '/weather/aemet-zaorejas/batch/'
+        self.item = {
+            'sensorName': 'aemet-zaorejas',
+            'sensorDate': '2026-02-15T23:00:00+00:00',
+            'dataInfo': DATA_INFO,
+        }
+
+    def tearDown(self):
+        self._stack.close()
+        _storage.reset_client()
+
+    def _post(self, payload):
+        return self.client.post(self.url, json=payload)
+
+    def _make_item(self, date_str: str) -> dict:
+        return {**self.item, 'sensorDate': date_str}
+
+    def test_single_item_returns_207(self):
+        response = self._post({'items': [self.item]})
+        self.assertEqual(response.status_code, 207)
+
+    def test_all_created_items_have_status_201(self):
+        payload = {'items': [
+            self._make_item('2026-02-15T23:00:00+00:00'),
+            self._make_item('2026-02-16T23:00:00+00:00'),
+        ]}
+        results = self._post(payload).json()
+        self.assertEqual(len(results), 2)
+        for item in results:
+            self.assertEqual(item['status'], 201)
+            self.assertIn('id', item['data'])
+
+    def test_partial_duplicate_returns_mixed_statuses(self):
+        # Pre-create one reading
+        self.client.post('/weather/aemet-zaorejas/', json=self.item)
+        payload = {'items': [
+            self._make_item('2026-02-15T23:00:00+00:00'),  # duplicate
+            self._make_item('2026-02-16T23:00:00+00:00'),  # new
+        ]}
+        results = self._post(payload).json()
+        self.assertEqual(len(results), 2)
+        statuses = {r['status'] for r in results}
+        self.assertIn(201, statuses)
+        self.assertIn(409, statuses)
+
+    def test_all_duplicate_items_return_409(self):
+        self.client.post('/weather/aemet-zaorejas/', json=self.item)
+        results = self._post({'items': [self.item]}).json()
+        self.assertEqual(results[0]['status'], 409)
+        self.assertIsNone(results[0]['data'])
+        self.assertIsNotNone(results[0]['error'])
+
+    def test_empty_items_returns_422(self):
+        response = self._post({'items': []})
+        self.assertEqual(response.status_code, 422)
+
+    def test_missing_items_key_returns_422(self):
+        response = self._post({})
+        self.assertEqual(response.status_code, 422)
+
+    def test_sensor_name_mismatch_returns_422(self):
+        item = {**self.item, 'sensorName': 'other-sensor'}
+        response = self._post({'items': [item]})
+        self.assertEqual(response.status_code, 422)
+        self.assertIn('sensorName', response.text)
+
+    def test_batch_persists_all_created_readings(self):
+        payload = {'items': [
+            self._make_item('2026-02-15T23:00:00+00:00'),
+            self._make_item('2026-02-16T23:00:00+00:00'),
+        ]}
+        self._post(payload)
+        body = self.client.get('/weather/aemet-zaorejas/').json()
+        self.assertEqual(body['count'], 2)
+
+    def test_batch_publishes_event_per_created_item(self):
+        payload = {'items': [
+            self._make_item('2026-02-15T23:00:00+00:00'),
+            self._make_item('2026-02-16T23:00:00+00:00'),
+        ]}
+        self._post(payload)
+        self.assertEqual(self.mock_publish.call_count, 2)
