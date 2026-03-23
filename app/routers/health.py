@@ -1,4 +1,4 @@
-"""Health-check endpoint reporting the status of the database and message broker."""
+"""Health-check endpoints for liveness and readiness probes."""
 import logging
 
 from fastapi import APIRouter
@@ -11,9 +11,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["health"])
 
 
+@router.get("/health/live")
+async def liveness() -> JSONResponse:
+    """Liveness probe — confirms the process is running.
+
+    Performs no I/O. Container orchestrators (Docker, Azure Container Apps)
+    should use this endpoint to decide whether to restart the container.
+    A broker or DB outage must never trigger a restart.
+    """
+    return JSONResponse(status_code=200, content={"status": "ok"})
+
+
+@router.get("/health/ready")
 @router.get("/health")
-async def health() -> JSONResponse:
-    """Return liveness and component status for the running service."""
+async def readiness() -> JSONResponse:
+    """Readiness probe — checks database and message broker reachability.
+
+    Returns HTTP 200 with status "degraded" when a dependency is unavailable
+    so monitoring tools can read the body without triggering false alerts.
+    Use this endpoint to decide whether to route traffic to the instance.
+    """
     db_status = "ok"
     messaging_status = "ok"
 
