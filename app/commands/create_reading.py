@@ -3,7 +3,6 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 
-from app.core.bus import event_bus
 from app.core.exceptions import DuplicateResourceError
 from app.domain.entities import WeatherReading
 from app.domain.repositories import readings as repo
@@ -39,6 +38,4 @@ class CreateReadingHandler:  # pylint: disable=too-few-public-methods
         ))
         logger.info('Created WeatherReading id=%s sensor=%s', entity.id, entity.sensor_name)
         entity.record_created()
-        for event in entity.collect_events():
-            event_bus.dispatch(event)
         return entity

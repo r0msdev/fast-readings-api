@@ -4,12 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from app.api.read_models import BatchResultItem
-from app.commands.create_reading import CreateReadingCommand, CreateReadingHandler
+from app.commands.create_reading import CreateReadingCommand
+from app.core.bus import command_bus
 from app.core.exceptions import DuplicateResourceError
 
 logger = logging.getLogger('weather')
-
-_handler = CreateReadingHandler()
 
 
 @dataclass
@@ -33,7 +32,7 @@ class CreateReadingsBatchHandler:  # pylint: disable=too-few-public-methods
         results: list[BatchResultItem] = []
         for sensor_date, data_info in cmd.items:
             try:
-                entity = _handler.handle(CreateReadingCommand(
+                entity = command_bus.dispatch(CreateReadingCommand(
                     sensor_name=cmd.sensor_name,
                     sensor_date=sensor_date,
                     data_info=data_info,

@@ -5,7 +5,9 @@ Three concrete buses are exported:
   query_bus    — exactly one handler per query type; returns a value.
   event_bus    — zero or more handlers per event type; returns nothing.
 """
-from typing import Any, Callable
+from __future__ import annotations
+
+from typing import Any, Callable, cast
 
 
 class SingleHandlerBus:
@@ -13,12 +15,19 @@ class SingleHandlerBus:
 
     Suitable for commands and queries where exactly one handler must own
     each message. Raises on duplicate registration and on unknown types.
+
+    When *_event_bus* is supplied, any domain events accumulated on the
+    handler's return value (via a ``collect_events()`` method) are
+    dispatched to that bus immediately after the handler returns.  This
+    keeps event publication strictly post-write, decoupled from handler
+    internals.
     """
 
-    def __init__(self) -> None:
-        self._handlers: dict[type, Callable] = {}
+    def __init__(self, _event_bus: EventBus | None = None) -> None:
+        self._handlers: dict[type, Callable[..., Any]] = {}
+        self.__event_bus = _event_bus
 
-    def register(self, message_type: type, handler_fn: Callable) -> None:
+    def register(self, message_type: type, handler_fn: Callable[..., Any]) -> None:
         """Associate a message type with a handler callable.
 
         Raises ValueError if a handler is already registered for this type.
@@ -33,13 +42,20 @@ class SingleHandlerBus:
     def dispatch(self, message: Any) -> Any:
         """Invoke the registered handler and return its result.
 
+        After the handler returns, any domain events collected on the result
+        are dispatched through the configured event bus (if any).
+
         Raises ValueError if no handler is registered for the message type.
         """
         msg_type: type = type(message)
         handler = self._handlers.get(msg_type)
         if handler is None:
             raise ValueError(f'No handler registered for {msg_type.__name__}')
-        return handler(message)
+        result: Any = cast(Any, handler(message))
+        if self.__event_bus is not None and hasattr(result, 'collect_events'):
+            for event in result.collect_events():
+                self.__event_bus.dispatch(event)
+        return result
 
 
 class EventBus:
@@ -50,9 +66,9 @@ class EventBus:
     """
 
     def __init__(self) -> None:
-        self._handlers: dict[type, list[Callable]] = {}
+        self._handlers: dict[type, list[Callable[..., Any]]] = {}
 
-    def register(self, event_type: type, handler_fn: Callable) -> None:
+    def register(self, event_type: type, handler_fn: Callable[..., Any]) -> None:
         """Append a handler for the given event type."""
         self._handlers.setdefault(event_type, []).append(handler_fn)
 
@@ -63,6 +79,6 @@ class EventBus:
             handler(event)
 
 
-command_bus = SingleHandlerBus()
-query_bus = SingleHandlerBus()
 event_bus = EventBus()
+command_bus = SingleHandlerBus(_event_bus=event_bus)
+query_bus = SingleHandlerBus()
