@@ -24,8 +24,13 @@ class Settings(BaseSettings):
     azure_servicebus_connection_string: str = ""
 
     @model_validator(mode="after")
-    def _validate_servicebus_credentials(self) -> "Settings":
-        if self.messaging_backend == "servicebus":
+    def _validate_messaging_credentials(self) -> "Settings":
+        if self.messaging_backend == "rabbitmq":
+            if not self.rabbitmq_url:
+                raise ValueError(
+                    "messaging_backend='rabbitmq' requires RABBITMQ_URL"
+                )
+        elif self.messaging_backend == "servicebus":
             if not self.azure_servicebus_namespace and not self.azure_servicebus_connection_string:
                 raise ValueError(
                     "messaging_backend='servicebus' requires either "
