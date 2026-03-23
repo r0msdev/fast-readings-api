@@ -32,6 +32,9 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     from app.infrastructure.database.mongo import ensure_indexes  # pylint: disable=import-outside-toplevel
     ensure_indexes()
 
+    from app.infrastructure.messaging import queue  # pylint: disable=import-outside-toplevel
+    queue.ping()
+
     yield
     logger.info("Shutting down %s", settings.app_name)
 
