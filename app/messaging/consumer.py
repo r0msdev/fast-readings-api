@@ -2,6 +2,7 @@
 import json
 import logging
 import threading
+import time
 from datetime import date
 from pathlib import Path
 
@@ -10,6 +11,9 @@ from app.core.correlation import set_correlation_id
 from app.commands.recalculate_stats import RecalculateStatsCommand
 
 logger = logging.getLogger('weather')
+
+_MAX_ATTEMPTS = 3
+_RETRY_DELAY = 1.0  # seconds — linearly scaled per attempt
 
 HEARTBEAT_FILE = Path('/tmp/worker.heartbeat')
 DEBOUNCE_DELAY = 15  # seconds
@@ -56,12 +60,30 @@ _debouncer = Debouncer()
 
 
 def _process(body: str) -> None:
-    """Decode a stats.recalculate message and dispatch the corresponding command."""
+    """Decode a stats.recalculate message and dispatch the corresponding command.
+
+    Retries up to _MAX_ATTEMPTS times with linear back-off. On total failure the
+    exception propagates so the broker can nack/dead-letter the message.
+    """
     payload = json.loads(body)
     sensor_name: str = payload['sensorName']
     sensor_date: date = date.fromisoformat(payload['date'])
     set_correlation_id(payload.get('correlationId', ''))
-    command_bus.dispatch(RecalculateStatsCommand(sensor_name, sensor_date))
+    cmd = RecalculateStatsCommand(sensor_name, sensor_date)
+
+    for attempt in range(1, _MAX_ATTEMPTS + 1):
+        try:
+            command_bus.dispatch(cmd)
+            return
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.warning(
+                'Process attempt %d/%d failed for sensor=%s — %s',
+                attempt, _MAX_ATTEMPTS, sensor_name, exc,
+            )
+            if attempt < _MAX_ATTEMPTS:
+                time.sleep(_RETRY_DELAY * attempt)
+            else:
+                raise  # nack → dead-letter queue
 
 
 def handle(body: str) -> None:

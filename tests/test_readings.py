@@ -10,6 +10,7 @@ import app.infrastructure.database.mongo as _storage
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
+from app.core.bus import event_bus
 from app.domain.entities import WeatherReading
 from app.domain.repositories import readings as repo
 from app.main import app
@@ -140,7 +141,7 @@ class WeatherReadingListPostTests(unittest.TestCase):
         self._stack = ExitStack()
         self._stack.enter_context(_db_patch(self.mock_db))
         self.mock_publish = self._stack.enter_context(
-            patch('app.messaging.handlers.publish_reading_changed')
+            patch('app.infrastructure.messaging.queue.publish')
         )
         self.client = self._stack.enter_context(TestClient(app))
         self.url = '/weather/aemet-zaorejas/'
@@ -273,7 +274,7 @@ class WeatherReadingDeleteTests(unittest.TestCase):
         self._stack = ExitStack()
         self._stack.enter_context(_db_patch(self.mock_db))
         self.mock_publish = self._stack.enter_context(
-            patch('app.messaging.handlers.publish_reading_changed')
+            patch('app.infrastructure.messaging.queue.publish')
         )
         self.client = self._stack.enter_context(TestClient(app))
         self.reading = _make_reading()
@@ -324,7 +325,7 @@ class WeatherReadingBatchPostTests(unittest.TestCase):
         self._stack = ExitStack()
         self._stack.enter_context(_db_patch(self.mock_db))
         self.mock_publish = self._stack.enter_context(
-            patch('app.messaging.handlers.publish_reading_changed')
+            patch('app.infrastructure.messaging.queue.publish')
         )
         self.client = self._stack.enter_context(TestClient(app))
         self.url = '/weather/aemet-zaorejas/batch/'

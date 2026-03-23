@@ -95,20 +95,32 @@ class EventBus:
 
     Suitable for domain events where several listeners may react to the
     same event. Dispatching an event with no handlers registered is a no-op.
+    Handlers run inline on the caller's thread; failures are caught and logged
+    so no single handler can break others or the caller.
     """
 
     def __init__(self) -> None:
         self._handlers: dict[type, list[Callable[..., Any]]] = {}
 
     def register(self, event_type: type, handler_fn: Callable[..., Any]) -> None:
-        """Append a handler for the given event type."""
+        """Append a synchronous inline handler for the given event type."""
         self._handlers.setdefault(event_type, []).append(handler_fn)
 
     def dispatch(self, event: Any) -> None:
-        """Call all registered handlers for the event type in registration order."""
+        """Call all handlers for the event type.
+
+        Failures are caught and logged so no single handler can break others
+        or the caller.
+        """
         event_type: type = type(event)
         for handler in self._handlers.get(event_type, []):
-            handler(event)
+            try:
+                handler(event)
+            except Exception:  # pylint: disable=broad-except
+                logger.exception(
+                    'Event handler %s failed for %s — continuing',
+                    handler.__name__, event_type.__name__,
+                )
 
 
 event_bus = EventBus()

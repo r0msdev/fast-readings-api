@@ -250,6 +250,21 @@ class TestEventBus:
         assert len(received_fake) == 1
         assert len(received_other) == 1
 
+    def test_failing_handler_does_not_raise(self) -> None:
+        """A handler that raises must not propagate the exception to the caller."""
+        bus = EventBus()
+        bus.register(_FakeEvent, lambda e: (_ for _ in ()).throw(RuntimeError('boom')))
+        bus.dispatch(_FakeEvent(name='x'))  # must not raise
+
+    def test_failing_handler_does_not_prevent_subsequent_handlers(self) -> None:
+        """Handlers after a failing one must still be called."""
+        bus = EventBus()
+        received: list[_FakeEvent] = []
+        bus.register(_FakeEvent, lambda e: (_ for _ in ()).throw(RuntimeError('boom')))
+        bus.register(_FakeEvent, received.append)
+        bus.dispatch(_FakeEvent(name='x'))
+        assert received == [_FakeEvent(name='x')]
+
 
 # ── Debug logging ────────────────────────────────────────────────────────────
 
