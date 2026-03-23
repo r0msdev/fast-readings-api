@@ -7,7 +7,22 @@ Three concrete buses are exported:
 """
 from __future__ import annotations
 
-from typing import Any, Callable, cast
+import logging
+from typing import Any, Callable, Protocol, runtime_checkable
+
+logger = logging.getLogger('weather')
+
+
+@runtime_checkable
+class HasDomainEvents(Protocol):
+    """Structural protocol satisfied by any aggregate that accumulates domain events.
+
+    Mark entities with ``record_*`` methods and a ``collect_events()`` drain so
+    the command bus can forward those events to the event bus without coupling to
+    concrete types.
+    """
+
+    def collect_events(self) -> list[Any]: ...  # noqa: D102
 
 
 class SingleHandlerBus:
@@ -16,16 +31,26 @@ class SingleHandlerBus:
     Suitable for commands and queries where exactly one handler must own
     each message. Raises on duplicate registration and on unknown types.
 
-    When *_event_bus* is supplied, any domain events accumulated on the
-    handler's return value (via a ``collect_events()`` method) are
-    dispatched to that bus immediately after the handler returns.  This
-    keeps event publication strictly post-write, decoupled from handler
-    internals.
+    Parameters
+    ----------
+    _event_bus:
+        When supplied, any domain events accumulated on the handler's return
+        value (via ``HasDomainEvents.collect_events()``) are forwarded to this
+        bus immediately after the handler returns — strictly post-write.
+    post_dispatch_hooks:
+        Optional list of callables invoked with the handler result after event
+        forwarding.  Use to attach outbox writers, structured loggers, or
+        tracing spans without modifying this class.
     """
 
-    def __init__(self, _event_bus: EventBus | None = None) -> None:
+    def __init__(
+        self,
+        _event_bus: EventBus | None = None,
+        post_dispatch_hooks: list[Callable[[Any], None]] | None = None,
+    ) -> None:
         self._handlers: dict[type, Callable[..., Any]] = {}
         self.__event_bus = _event_bus
+        self._post_dispatch_hooks: list[Callable[[Any], None]] = post_dispatch_hooks or []
 
     def register(self, message_type: type, handler_fn: Callable[..., Any]) -> None:
         """Associate a message type with a handler callable.
@@ -42,8 +67,9 @@ class SingleHandlerBus:
     def dispatch(self, message: Any) -> Any:
         """Invoke the registered handler and return its result.
 
-        After the handler returns, any domain events collected on the result
-        are dispatched through the configured event bus (if any).
+        Execution order after the handler returns:
+        1. Domain events collected from the result are forwarded to the event bus.
+        2. Each post-dispatch hook is called with the result.
 
         Raises ValueError if no handler is registered for the message type.
         """
@@ -51,10 +77,14 @@ class SingleHandlerBus:
         handler = self._handlers.get(msg_type)
         if handler is None:
             raise ValueError(f'No handler registered for {msg_type.__name__}')
-        result: Any = cast(Any, handler(message))
-        if self.__event_bus is not None and hasattr(result, 'collect_events'):
+        logger.debug('Dispatching %s', msg_type.__name__)
+        result: Any = handler(message)
+        logger.debug('Dispatched %s → %s', msg_type.__name__, type(result).__name__)
+        if self.__event_bus is not None and isinstance(result, HasDomainEvents):
             for event in result.collect_events():
                 self.__event_bus.dispatch(event)
+        for hook in self._post_dispatch_hooks:
+            hook(result)
         return result
 
 
